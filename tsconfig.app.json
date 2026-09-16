@@ -28,5 +28,12 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Node-environment tests are typechecked by tsconfig.node.json. */
+  "exclude": [
+    "src/test/theme-contrast.test.ts",
+    "src/test/theme-bootstrap.test.ts",
+    "src/test/typography-scale.test.ts",
+    "src/test/spacing-scale.test.ts"
+  ]
 }

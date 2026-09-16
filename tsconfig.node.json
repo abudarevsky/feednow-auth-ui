@@ -20,5 +20,14 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "e2e",
+    /* Node-environment unit tests: read src/index.css from disk, no DOM. */
+    "src/test/theme-contrast.test.ts",
+    "src/test/theme-bootstrap.test.ts",
+    "src/test/typography-scale.test.ts",
+    "src/test/spacing-scale.test.ts"
+  ]
 }

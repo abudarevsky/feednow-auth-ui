@@ -1,1 +1,290 @@
 @import "tailwindcss";
+
+/*
+ * Class-based dark mode: ThemeProvider (src/hooks/use-theme.tsx) toggles the
+ * `.dark` class on <html>. Overriding the `dark:` variant here keeps every
+ * dark style under explicit app control — Tailwind v4 would otherwise map
+ * `dark:` to the OS prefers-color-scheme, letting an OS-dark browser silently
+ * swap contrast-verified pairs the app never chose (the reason ui/button.tsx
+ * originally stripped generated `dark:` classes).
+ */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * FeedNow foundational color palette (Phase 02, step 1).
+ *
+ * Contract: every palette token below is a literal 6-digit hex value and is
+ * the single source of truth for src/test/theme-contrast.test.ts, which
+ * parses these custom properties by name to verify WCAG 2.1 AA contrast.
+ * Do not convert these to oklch or reference them indirectly.
+ *
+ * Palette per specification: white/slate surfaces, slate-900 primary text,
+ * slate-600/500 secondary text, slate-200 borders, emerald accents
+ * (emerald-50/200), red reserved for destructive/error, restrained shadows,
+ * no gradients. A class-based dark palette (same contract, see the dark
+ * block below) supplements this light palette.
+ *
+ * Contrast deviation (recorded): the spec names emerald-600 for primary
+ * actions, but white-on-emerald-600 measures ~3.8:1, below AA. --primary is
+ * therefore emerald-700 (#047857) with emerald-800 hover; emerald-600 stays
+ * a non-text accent (borders, emerald-50/200 fills, focus ring).
+ */
+@theme static {
+  /* Surfaces and text */
+  --color-feednow-background: #ffffff;
+  --color-feednow-on-primary: #ffffff;
+  --color-feednow-foreground: #0f172a; /* slate-900, primary text */
+  --color-feednow-secondary-text: #475569; /* slate-600, secondary text */
+  --color-feednow-tertiary-text: #64748b; /* slate-500, tertiary text */
+  --color-feednow-surface-subtle: #f8fafc; /* slate-50 */
+  --color-feednow-surface-muted: #f1f5f9; /* slate-100 */
+  --color-feednow-border: #e2e8f0; /* slate-200 */
+
+  /* Emerald accents */
+  --color-feednow-primary: #047857; /* emerald-700, primary action */
+  --color-feednow-primary-hover: #065f46; /* emerald-800, primary hover */
+  --color-feednow-accent-strong: #059669; /* emerald-600, non-text accent + focus ring */
+  --color-feednow-accent-subtle: #ecfdf5; /* emerald-50 */
+  --color-feednow-accent-soft: #a7f3d0; /* emerald-200 */
+
+  /* Red reserved for destructive/error only */
+  --color-feednow-destructive: #dc2626; /* red-600 */
+  --color-feednow-destructive-hover: #b91c1c; /* red-700 */
+  --color-feednow-destructive-subtle: #fef2f2; /* red-50 */
+
+  /* Restrained, slate-tinted shadow scale; never gradients */
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-md:
+    0 4px 8px -2px rgb(15 23 42 / 0.08),
+    0 2px 4px -2px rgb(15 23 42 / 0.06);
+  --shadow-lg:
+    0 12px 24px -4px rgb(15 23 42 / 0.1),
+    0 4px 8px -4px rgb(15 23 42 / 0.06);
+}
+
+/*
+ * FeedNow dark palette (dark mode toggle).
+ *
+ * Contract: exactly like the light palette above — every token is a literal
+ * 6-digit hex value, and src/test/theme-contrast.test.ts parses these by
+ * name to verify WCAG 2.1 AA for the dark arbiter text pairs. The dark
+ * palette inverts the light roles around the same slate/emerald identity:
+ * slate-900 background, slate-50 primary text, slate-300/400 secondary text,
+ * slate-700 borders, emerald-400 as the accessible accent (dark emerald-950
+ * text on emerald-400 fills), red-400 reserved for destructive/error with
+ * slate-900 text on red fills. Reusing a hex across tokens (on-primary and
+ * accent-subtle, background and on-destructive) mirrors the light palette's
+ * #ffffff reuse and keeps each semantic mapping single-token.
+ */
+@theme static {
+  /* Surfaces and text */
+  --color-feednow-dark-background: #0f172a; /* slate-900 */
+  --color-feednow-dark-on-primary: #022c22; /* emerald-950, text on emerald fills */
+  --color-feednow-dark-foreground: #f8fafc; /* slate-50, primary text */
+  --color-feednow-dark-secondary-text: #cbd5e1; /* slate-300, secondary text */
+  --color-feednow-dark-tertiary-text: #94a3b8; /* slate-400, tertiary text */
+  --color-feednow-dark-surface-subtle: #1e293b; /* slate-800 */
+  --color-feednow-dark-surface-muted: #334155; /* slate-700 */
+  --color-feednow-dark-border: #334155; /* slate-700 */
+
+  /* Emerald accents */
+  --color-feednow-dark-primary: #34d399; /* emerald-400, primary action */
+  --color-feednow-dark-primary-hover: #6ee7b7; /* emerald-300, primary hover */
+  --color-feednow-dark-accent-strong: #34d399; /* emerald-400, focus ring */
+  --color-feednow-dark-accent-subtle: #022c22; /* emerald-950, accent hover fill */
+  --color-feednow-dark-accent-soft: #065f46; /* emerald-800 */
+
+  /* Red reserved for destructive/error only */
+  --color-feednow-dark-destructive: #f87171; /* red-400 */
+  --color-feednow-dark-destructive-hover: #ef4444; /* red-500 */
+  --color-feednow-dark-destructive-subtle: #450a0a; /* red-950 */
+  --color-feednow-dark-on-destructive: #0f172a; /* slate-900, text on red fills */
+}
+
+/*
+ * FeedNow typography scale (Phase 02).
+ *
+ * Contract: every --text-* step below is a literal rem value paired with an
+ * explicit --text-*--line-height (unitless) and --text-*--letter-spacing
+ * value, and is the single source of truth for
+ * src/test/typography-scale.test.ts, which parses these custom properties by
+ * name and cross-checks the scale utilities used by
+ * src/components/typography.tsx. The paired values make each Tailwind v4
+ * `text-*` utility self-contained: size, line-height, and tracking can never
+ * drift apart per usage site. Reusable text components in
+ * src/components/typography.tsx own the semantic mapping (heading levels and
+ * text variants onto scale steps); screens use those components rather than
+ * ad-hoc text utilities.
+ */
+@theme static {
+  /* Font stacks */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* Rem-based scale; larger steps tighten line-height and tracking */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-xs--letter-spacing: 0.01em;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-sm--letter-spacing: 0;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-base--letter-spacing: 0;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-lg--letter-spacing: 0;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.4;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.3;
+  --text-2xl--letter-spacing: -0.015em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.2;
+  --text-3xl--letter-spacing: -0.02em;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.15;
+  --text-4xl--letter-spacing: -0.025em;
+}
+
+/*
+ * FeedNow spacing scale (Phase 02 design foundations).
+ *
+ * Contract: every --spacing-* step below is a literal rem value on a 4px
+ * grid and its name must match exactly one entry of SPACING_STEPS in
+ * src/lib/spacing.ts. src/test/spacing-scale.test.ts parses these custom
+ * properties by name and cross-checks the declared steps, so the stylesheet
+ * and the TypeScript metadata consumed by src/hooks/use-spacing.ts can never
+ * drift apart. Tailwind v4 turns each step into margin/padding/gap utilities
+ * (p-md, gap-lg, mt-2xl, …) and `static` keeps every step in the emitted
+ * stylesheet so the hook can read computed values at runtime. Components use
+ * these utilities — or the hook where JS-owned geometry needs a number —
+ * instead of ad-hoc px/rem values, so margins and padding stay consistent.
+ */
+@theme static {
+  --spacing-2xs: 0.25rem; /* 4px */
+  --spacing-xs: 0.5rem; /* 8px */
+  --spacing-sm: 0.75rem; /* 12px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-2xl: 3rem; /* 48px */
+}
+
+/*
+ * shadcn/ui semantic variables. Each maps onto exactly one literal-hex
+ * palette token above; the contrast test resolves these references so
+ * components and assertions can never drift from the palette.
+ */
+:root {
+  color-scheme: light;
+  --background: var(--color-feednow-background);
+  --foreground: var(--color-feednow-foreground);
+  --card: var(--color-feednow-background);
+  --card-foreground: var(--color-feednow-foreground);
+  --popover: var(--color-feednow-background);
+  --popover-foreground: var(--color-feednow-foreground);
+  --primary: var(--color-feednow-primary);
+  --primary-foreground: var(--color-feednow-on-primary);
+  --secondary: var(--color-feednow-surface-muted);
+  --secondary-foreground: var(--color-feednow-foreground);
+  --muted: var(--color-feednow-surface-subtle);
+  --muted-foreground: var(--color-feednow-secondary-text);
+  --accent: var(--color-feednow-accent-subtle);
+  --accent-foreground: var(--color-feednow-foreground);
+  --destructive: var(--color-feednow-destructive);
+  --destructive-foreground: var(--color-feednow-on-primary);
+  --border: var(--color-feednow-border);
+  --input: var(--color-feednow-border);
+  --ring: var(--color-feednow-accent-strong);
+}
+
+/*
+ * Dark theme: the same semantic variables, each remapped onto exactly one
+ * literal-hex dark palette token. ThemeProvider toggles `.dark` on <html>;
+ * every component keeps using bg-background/text-muted-foreground/… and
+ * flips with it, so no usage site needs a `dark:` class. The contrast test
+ * parses this block separately from :root and verifies AA for the dark
+ * arbiter pairs.
+ */
+.dark {
+  color-scheme: dark;
+  --background: var(--color-feednow-dark-background);
+  --foreground: var(--color-feednow-dark-foreground);
+  --card: var(--color-feednow-dark-background);
+  --card-foreground: var(--color-feednow-dark-foreground);
+  --popover: var(--color-feednow-dark-background);
+  --popover-foreground: var(--color-feednow-dark-foreground);
+  --primary: var(--color-feednow-dark-primary);
+  --primary-foreground: var(--color-feednow-dark-on-primary);
+  --secondary: var(--color-feednow-dark-surface-muted);
+  --secondary-foreground: var(--color-feednow-dark-foreground);
+  --muted: var(--color-feednow-dark-surface-subtle);
+  --muted-foreground: var(--color-feednow-dark-secondary-text);
+  --accent: var(--color-feednow-dark-accent-subtle);
+  --accent-foreground: var(--color-feednow-dark-foreground);
+  --destructive: var(--color-feednow-dark-destructive);
+  --destructive-foreground: var(--color-feednow-dark-on-destructive);
+  --border: var(--color-feednow-dark-border);
+  --input: var(--color-feednow-dark-border);
+  --ring: var(--color-feednow-dark-accent-strong);
+}
+
+/* Expose the semantic variables as Tailwind color utilities (shadcn v4 pattern). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  html {
+    /* Default font stack from the typography token */
+    font-family: var(--font-sans);
+  }
+
+  body {
+    /* slate-900 on white, base scale step */
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  /* Visible focus driven by the emerald ring token; state is never color-only. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Links are underlined in addition to any color difference. */
+  a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
