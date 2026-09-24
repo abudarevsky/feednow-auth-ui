@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 function LoadingBlock() {
   return (
-    <div role="status" className="grid gap-sm" aria-label="Loading">
+    <div role="status" className="grid gap-3" aria-label="Loading">
       <span className="sr-only">Loading…</span>
       <Skeleton aria-hidden="true" className="h-5 w-2/3" />
       <Skeleton aria-hidden="true" className="h-4 w-full" />
@@ -26,7 +26,7 @@ function EmptyState({
   icon = <CircleHelp aria-hidden="true" className="size-5" />,
 }: EmptyStateProps) {
   return (
-    <section className="grid justify-items-center gap-xs p-xl text-center">
+    <section className="grid justify-items-center gap-2 p-8 text-center">
       <span aria-hidden="true" className="text-muted-foreground">
         {icon}
       </span>
@@ -38,7 +38,7 @@ function EmptyState({
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded-md border border-destructive p-md text-destructive">
+    <div role="alert" className="rounded-md border border-destructive p-4 text-destructive">
       {message}
     </div>
   )

@@ -67,7 +67,7 @@ export type NavigationProps = {
 }
 
 const navItemClass =
-  'inline-flex cursor-default items-center gap-2xs rounded-md px-sm py-xs text-sm font-medium hover:bg-accent hover:text-accent-foreground aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground'
+  'inline-flex cursor-default items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground'
 
 function Navigation({ label, items, menu, className }: NavigationProps) {
   return (
@@ -76,7 +76,7 @@ function Navigation({ label, items, menu, className }: NavigationProps) {
       data-slot="navigation"
       className={cn('flex items-center', className)}
     >
-      <ul role="list" className="flex items-center gap-xs">
+      <ul role="list" className="flex items-center gap-2">
         {items.map((item) => (
           <li key={item.id}>
             <button

@@ -51,77 +51,12 @@
     0 4px 8px -4px rgb(15 23 42 / 0.06);
 }
 
-/*
- * FeedNow typography scale (Phase 02).
- *
- * Contract: every --text-* step below is a literal rem value paired with an
- * explicit --text-*--line-height (unitless) and --text-*--letter-spacing
- * value, and is the single source of truth for
- * src/test/typography-scale.test.ts, which parses these custom properties by
- * name and cross-checks the scale utilities used by
- * src/components/typography.tsx. The paired values make each Tailwind v4
- * `text-*` utility self-contained: size, line-height, and tracking can never
- * drift apart per usage site. Reusable text components in
- * src/components/typography.tsx own the semantic mapping (heading levels and
- * text variants onto scale steps); screens use those components rather than
- * ad-hoc text utilities.
- */
+/* FeedNow's standard sans and monospace stacks. */
 @theme static {
-  /* Font stacks */
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", monospace;
-
-  /* Rem-based scale; larger steps tighten line-height and tracking */
-  --text-xs: 0.75rem;
-  --text-xs--line-height: 1.5;
-  --text-xs--letter-spacing: 0.01em;
-  --text-sm: 0.875rem;
-  --text-sm--line-height: 1.5;
-  --text-sm--letter-spacing: 0;
-  --text-base: 1rem;
-  --text-base--line-height: 1.5;
-  --text-base--letter-spacing: 0;
-  --text-lg: 1.125rem;
-  --text-lg--line-height: 1.5;
-  --text-lg--letter-spacing: 0;
-  --text-xl: 1.25rem;
-  --text-xl--line-height: 1.4;
-  --text-xl--letter-spacing: -0.01em;
-  --text-2xl: 1.5rem;
-  --text-2xl--line-height: 1.3;
-  --text-2xl--letter-spacing: -0.015em;
-  --text-3xl: 1.875rem;
-  --text-3xl--line-height: 1.2;
-  --text-3xl--letter-spacing: -0.02em;
-  --text-4xl: 2.25rem;
-  --text-4xl--line-height: 1.15;
-  --text-4xl--letter-spacing: -0.025em;
-}
-
-/*
- * FeedNow spacing scale (Phase 02 design foundations).
- *
- * Contract: every --spacing-* step below is a literal rem value on a 4px
- * grid and its name must match exactly one entry of SPACING_STEPS in
- * src/lib/spacing.ts. src/test/spacing-scale.test.ts parses these custom
- * properties by name and cross-checks the declared steps, so the stylesheet
- * and the TypeScript metadata consumed by src/hooks/use-spacing.ts can never
- * drift apart. Tailwind v4 turns each step into margin/padding/gap utilities
- * (p-md, gap-lg, mt-2xl, …) and `static` keeps every step in the emitted
- * stylesheet so the hook can read computed values at runtime. Components use
- * these utilities — or the hook where JS-owned geometry needs a number —
- * instead of ad-hoc px/rem values, so margins and padding stay consistent.
- */
-@theme static {
-  --spacing-2xs: 0.25rem; /* 4px */
-  --spacing-xs: 0.5rem; /* 8px */
-  --spacing-sm: 0.75rem; /* 12px */
-  --spacing-md: 1rem; /* 16px */
-  --spacing-lg: 1.5rem; /* 24px */
-  --spacing-xl: 2rem; /* 32px */
-  --spacing-2xl: 3rem; /* 48px */
 }
 
 /*
@@ -191,8 +126,8 @@
     /* slate-900 on white, base scale step */
     background-color: var(--background);
     color: var(--foreground);
-    font-size: var(--text-base);
-    line-height: var(--text-base--line-height);
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   /* Visible focus driven by the emerald ring token; state is never color-only. */

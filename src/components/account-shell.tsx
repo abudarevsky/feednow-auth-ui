@@ -17,12 +17,12 @@ type AccountShellProps = {
 
 function AccountShell({ items, children }: AccountShellProps) {
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl gap-xl p-lg">
-      <aside className="hidden w-56 shrink-0 border-r border-border pr-md md:block">
+    <div className="mx-auto flex min-h-screen max-w-6xl gap-8 p-6">
+      <aside className="hidden w-56 shrink-0 border-r border-border pr-4 md:block">
         <AccountNav items={items} />
       </aside>
       <div className="min-w-0 flex-1">
-        <div className="mb-md md:hidden">
+        <div className="mb-4 md:hidden">
           <Sheet>
             <SheetTrigger asChild>
               <Button type="button" variant="outline" aria-label="Open account navigation">
@@ -33,7 +33,7 @@ function AccountShell({ items, children }: AccountShellProps) {
               <SheetHeader>
                 <SheetTitle>Account navigation</SheetTitle>
               </SheetHeader>
-              <div className="px-md">
+              <div className="px-4">
                 <AccountNav items={items} />
               </div>
             </SheetContent>

@@ -14,7 +14,7 @@ type AccountNavProps = {
 function AccountNav({ items, onNavigate }: AccountNavProps) {
   return (
     <nav aria-label="Account">
-      <ul className="grid gap-xs">
+      <ul className="grid gap-2">
         {items.map((item) => (
           <li key={item.label}>
             <Button

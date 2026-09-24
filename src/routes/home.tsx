@@ -19,22 +19,22 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function Home() {
   return (
     <div>
-      <header className="mx-auto max-w-6xl px-lg pt-xl">
+      <header className="mx-auto max-w-6xl px-6 pt-8">
         <h1 className="text-3xl font-semibold">Phase 02 design system</h1>
-        <p className="mt-xs text-muted-foreground">Temporary primitives gallery.</p>
+        <p className="mt-2 text-muted-foreground">Temporary primitives gallery.</p>
       </header>
-      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-xl p-lg">
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-8 p-6">
         <section aria-labelledby="theme-swatches">
-          <h2 id="theme-swatches" className="mb-sm text-xl font-semibold">Theme swatches</h2>
-          <div className="grid gap-sm sm:grid-cols-3">
-            <div className="rounded-md border border-border bg-background p-md text-foreground">Surface and primary text</div>
-            <div className="rounded-md bg-primary p-md text-primary-foreground">Primary action</div>
-            <div className="rounded-md bg-destructive p-md text-destructive-foreground">Destructive state</div>
+          <h2 id="theme-swatches" className="mb-3 text-xl font-semibold">Theme swatches</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-md border border-border bg-background p-4 text-foreground">Surface and primary text</div>
+            <div className="rounded-md bg-primary p-4 text-primary-foreground">Primary action</div>
+            <div className="rounded-md bg-destructive p-4 text-destructive-foreground">Destructive state</div>
           </div>
         </section>
 
         <section aria-labelledby="form-pattern">
-          <h2 id="form-pattern" className="mb-sm text-xl font-semibold">Form field pattern</h2>
+          <h2 id="form-pattern" className="mb-3 text-xl font-semibold">Form field pattern</h2>
           <div className="max-w-md">
             <FormField id="gallery-email" label="Email address" type="email" hint="Use your work email." error="Enter a valid email address." />
           </div>
@@ -56,14 +56,14 @@ export function Home() {
             ]}
           >
             <h2 className="text-xl font-semibold">Profile settings</h2>
-            <p className="mt-xs text-muted-foreground">Responsive account content area.</p>
+            <p className="mt-2 text-muted-foreground">Responsive account content area.</p>
           </AccountShell>
         </section>
 
         <section aria-labelledby="feedback-primitives">
-          <h2 id="feedback-primitives" className="mb-sm text-xl font-semibold">Feedback and confirmation</h2>
-          <div className="grid gap-md sm:grid-cols-2">
-            <div className="grid content-start gap-sm">
+          <h2 id="feedback-primitives" className="mb-3 text-xl font-semibold">Feedback and confirmation</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid content-start gap-3">
               <Badge>Active</Badge>
               <Alert>
                 <AlertTitle>Saved</AlertTitle>
@@ -76,7 +76,7 @@ export function Home() {
                 onConfirm={() => undefined}
               />
             </div>
-            <div className="grid gap-md">
+            <div className="grid gap-4">
               <LoadingBlock />
               <EmptyState title="No sessions" description="New sessions appear here." />
               <ErrorState message="Could not load account details." />
@@ -86,7 +86,7 @@ export function Home() {
         </section>
 
         <section aria-labelledby="dialog-preview">
-          <h2 id="dialog-preview" className="mb-sm text-xl font-semibold">Dialog</h2>
+          <h2 id="dialog-preview" className="mb-3 text-xl font-semibold">Dialog</h2>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline">Open dialog preview</Button>
