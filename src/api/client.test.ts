@@ -87,6 +87,21 @@ describe('typed API transport', () => {
       .rejects.toMatchObject({ kind: 'malformed_response', message: 'We could not process the server response. Please try again.' })
   })
 
+  it.each([
+    [401, 'invalid_credentials', 'validation'],
+    [403, 'account_disabled', 'forbidden'],
+  ] as const)('normalizes Phase 00 auth error %s/%s safely', async (status, code, kind) => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      code,
+      message: 'private backend detail',
+    }), { status }))
+
+    await expect(createApiClient({ fetchImpl }).request('/api/v1/auth/login', { method: 'POST', body: { password: 'secret' } }))
+      .rejects.toMatchObject({ kind, code, message: kind === 'validation'
+        ? 'Check the information and try again.'
+        : 'You do not have permission to do that.' })
+  })
+
   it('preserves request cancellation', async () => {
     const abortError = new DOMException('cancelled', 'AbortError')
     const fetchImpl = vi.fn<typeof fetch>().mockRejectedValue(abortError)

@@ -4,6 +4,11 @@ type CsrfOptions = {
   cookieReader?: () => string
 }
 
+const FEEDNOW_CSRF_OPTIONS: CsrfOptions = Object.freeze({
+  cookieName: 'feednow_csrf',
+  headerName: 'X-CSRF-Token',
+})
+
 function readCookie(cookieHeader: string, cookieName: string): string | undefined {
   if (!cookieName) return undefined
 
@@ -42,5 +47,5 @@ function readCsrfToken(options: CsrfOptions): string | undefined {
   }
 }
 
-export { isUnsafeMethod, readCookie, readCsrfToken }
+export { FEEDNOW_CSRF_OPTIONS, isUnsafeMethod, readCookie, readCsrfToken }
 export type { CsrfOptions }

@@ -47,8 +47,15 @@ Implemented and committed:
   service codes; backend text and exception details are discarded.
 - `02d0694` — configurable readable-cookie to request-header CSRF adapter for
   unsafe methods, without invented defaults.
+- Typed context, auth, account, security, and API-key modules from the Phase 00
+  schema; fixed FeedNow CSRF configuration; and safe mapping for the
+  contract's `invalid_credentials` and `account_disabled` codes.
 
-The phase remains in `wip`. Auth, account, API-key, and client-context modules
-and their payload schemas remain to be implemented against the Phase 00
-contract. No backend request, production endpoint, token storage, or
-sensitive-data logging was added.
+The module tests use mocked fetch and verify canonical paths, request bodies,
+opaque path/query encoding, and CSRF header injection. `npm run check` passed:
+lint, typecheck, 129 Vitest tests, and production build. E2E was not run because
+this task adds no UI flow or route. The local Vite proxy still forwards `/api`
+unchanged and must receive the Phase 00 one-segment rewrite before local
+service integration; this is recorded as a corrective follow-up. No live
+backend, Cognito, CloudFront, or deployment behavior was tested. Phase 04
+remains in `wip` pending that correction and review.

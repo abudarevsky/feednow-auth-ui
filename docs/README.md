@@ -65,7 +65,7 @@ state, interpret query parameters, or perform authentication. Account
 navigation uses React Router links and marks the current link with
 `aria-current="page"`.
 
-## Typed API transport foundation
+## Typed API transport and contract modules
 
 `src/api/client.ts` provides the shared JSON transport for relative
 `/api/*` requests. It sets same-origin credentials and JSON headers, validates
@@ -74,20 +74,38 @@ returns typed response bodies. `src/lib/api-errors.ts` maps HTTP status and
 recognized service error codes to fixed UI-safe messages. It does not expose
 backend messages, field messages, raw response bodies, or exception text.
 
-`src/api/csrf.ts` can copy a token from a configured readable cookie to a
-configured header for unsafe methods. Cookie/header names and CSRF bootstrap
-remain unset because the Phase 00/05 browser contract has not specified them.
-The API client does not yet provide feature-specific auth, account, API-key,
-or client-context modules; those require approved endpoint and payload schemas.
-No screen currently calls the transport.
+`src/api/csrf.ts` copies a token from a readable cookie to a header for unsafe
+methods. `createFeedNowApiClient()` uses the Phase 00 names `feednow_csrf` and
+`X-CSRF-Token`; its caller must first call the auth module's `bootstrapCsrf()`
+endpoint. Missing tokens block unsafe requests locally. The lower-level
+`createApiClient()` remains configurable for isolated tests.
+
+Typed feature modules live in `src/api/auth.ts`, `account.ts`, `apiKeys.ts`,
+and `clientContext.ts`, with browser DTOs in `src/types/browser-api.ts`. They
+cover context/session, login/challenge, handoff/federation, registration,
+verification/recovery, logout, profile/security, and organization-scoped
+key list/create/revoke requests. Auth status variants, service enums,
+pagination, one-time key creation, opaque IDs, request cancellation, and
+safe auth error codes are represented by types. Feature modules receive the
+shared client as a dependency; no screen currently calls them.
+
+These modules implement only the browser transport contract. Most of the
+corresponding browser routes are not implemented in `feednow-auth`; see the
+[Phase 00 contract](../specs/done/00-contract-reconciliation.md) and Phase 05
+plan. Source-backed `/v1/me` and API-key schemas are not proof of mounted
+cookie-session browser routes. Do not treat local mocked transport tests as
+service or deployed integration evidence.
 
 ## Local API proxy
 
 `vite.config.ts` proxies relative `/api/*` requests to
 `http://127.0.0.1:8000` by default, matching the local `feednow-auth` server.
-Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The proxy preserves
-the API path and backend response status, content type, and body. It does not
-rewrite frontend routes; Vite serves the SPA shell for routes such as `/login`.
+Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The Phase 00 mapping
+requires stripping exactly the leading `/api` before forwarding, preserving
+the versioned `/v1` path, query, and backend response status, content type, and
+body. The implementation currently still forwards `/api` unchanged; this is
+a local integration gap. It does not rewrite frontend routes; Vite serves the
+SPA shell for routes such as `/login`.
 `src/lib/dev-proxy.test.ts` verifies both behaviors against ephemeral local
 servers, including a JSON 429 API response that remains JSON rather than
 becoming `index.html`.

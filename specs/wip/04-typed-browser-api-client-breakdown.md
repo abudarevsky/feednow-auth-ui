@@ -62,7 +62,7 @@ focused checks, and handoff evidence are complete.
    - Rollback: Revert the commit; removes the optional CSRF adapter and request
      integration; no server or cookie changes.
 
-4. Record implemented boundary and deferred contract work
+4. Record implemented boundary and deferred contract work — complete
    - Scope: `docs/README.md`, `specs/wip/04-typed-browser-api-client.md`,
      `specs/wip/04-typed-browser-api-client-breakdown.md`.
    - Change: Document verified transport/error/CSRF behavior and tests. Link
@@ -75,7 +75,7 @@ focused checks, and handoff evidence are complete.
    - Handoff checks: Record actual results and exact deferred acceptance gaps.
    - Rollback: Revert docs only; no data or migration effect.
 
-5. Add typed feature API modules for the Phase 00 browser contract
+5. Add typed feature API modules for the Phase 00 browser contract — complete
    - Scope: `src/api/auth.ts`, `src/api/account.ts`, `src/api/apiKeys.ts`,
      `src/api/clientContext.ts`, `src/types/`, and focused module tests.
    - Change: Declare request/response types from the Phase 00 contract and

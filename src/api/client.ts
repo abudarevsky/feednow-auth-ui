@@ -1,5 +1,5 @@
 import { asApiPath, type ApiPath } from '@/api/path'
-import { isUnsafeMethod, readCsrfToken, type CsrfOptions } from '@/api/csrf'
+import { FEEDNOW_CSRF_OPTIONS, isUnsafeMethod, readCsrfToken, type CsrfOptions } from '@/api/csrf'
 import {
   createCsrfError,
   createMalformedResponseError,
@@ -100,5 +100,9 @@ function createApiClient({ fetchImpl = fetch, csrf }: ApiClientOptions = {}): Ap
   }
 }
 
-export { createApiClient }
+function createFeedNowApiClient(options: Omit<ApiClientOptions, 'csrf'> = {}): ApiClient {
+  return createApiClient({ ...options, csrf: FEEDNOW_CSRF_OPTIONS })
+}
+
+export { createApiClient, createFeedNowApiClient }
 export type { ApiClient, ApiMethod, ApiRequestOptions, ApiResponse, ApiClientOptions }
