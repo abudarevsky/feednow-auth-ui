@@ -1,15 +1,13 @@
 # feednow-auth-ui current state
 
-Phase 01 (static UI scaffold and quality baseline) and Phase 02 (design system
-and accessibility primitives) are implemented and locally verified. This is a
-static React + TypeScript + Vite browser application. Phase 02 provides reusable
-presentation primitives and a temporary gallery at `/`; it does not implement
-authentication flows, account API calls, session behavior, or deployment.
+Phases 01–03 are implemented and locally verified. This is a static React +
+TypeScript + Vite browser application. Phase 03 provides client-side routing,
+public and protected layouts, an injectable session-state seam, and a local
+same-origin API proxy. It does not discover a real session, implement
+authentication flows, call account APIs, or configure deployment.
 
-The current phase-02 requirements and task breakdown live in
-`specs/wip/02-design-system-and-accessibility-primitives.md` and its accepted
-breakdown. Future, unaccepted work remains in `specs/` and is not current
-behavior.
+The completed phase requirements and handoffs live in `specs/done/`. Future,
+unaccepted work remains in `specs/` and is not current behavior.
 
 ## Design tokens
 
@@ -48,9 +46,35 @@ Avatar, Tabs, Dialog, AlertDialog, Sheet, Table, Tooltip, Skeleton, and Sonner.
 | Confirm dialog | `src/components/confirm-dialog.tsx` | Uses AlertDialog for destructive confirmation. Cancel receives initial focus. Only explicit confirmation calls `onConfirm`; Escape and backdrop dismissal close without calling it, and focus returns to the trigger. |
 | State blocks | `src/components/state-blocks.tsx` | LoadingBlock announces “Loading…” with `role="status"` and decorative Skeletons; EmptyState pairs an icon with visible text; ErrorState renders only its caller-supplied safe message with `role="alert"`. |
 
-The home route in `src/routes/home.tsx` is a temporary primitives gallery so
-the components can be reviewed in the browser. Phase 03 replaces this route
-when routing and account layouts are implemented.
+## Routing and session seam
+
+`src/routes/route-table.ts` defines the canonical route table from the merged
+UI specification:
+
+| Route group | Paths | Layout / state |
+| --- | --- | --- |
+| Public | `/login`, `/signup`, `/verify-email`, `/forgot-password`, `/reset-password`, `/logout` | `AuthCard` with safe placeholder content |
+| Protected | `/account`, `/account/security`, `/account/api-keys` | `AccountShell` when authenticated; deterministic loading or sign-in prompt otherwise |
+| Entry / fallback | `/`, all unknown paths | Entry links / explicit not-found page |
+
+`src/routes/session-context.ts` and `session-provider.tsx` define injected
+`loading`, `unauthenticated`, or `authenticated` session state. `App` defaults
+to `loading`; a later phase must provide backend-discovered state. Public
+routes do not depend on the session. Protected routes do not fetch session
+state, interpret query parameters, or perform authentication. Account
+navigation uses React Router links and marks the current link with
+`aria-current="page"`.
+
+## Local API proxy
+
+`vite.config.ts` proxies relative `/api/*` requests to
+`http://127.0.0.1:8000` by default, matching the local `feednow-auth` server.
+Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The proxy preserves
+the API path and backend response status, content type, and body. It does not
+rewrite frontend routes; Vite serves the SPA shell for routes such as `/login`.
+`src/lib/dev-proxy.test.ts` verifies both behaviors against ephemeral local
+servers, including a JSON 429 API response that remains JSON rather than
+becoming `index.html`.
 
 ## Local development and checks
 
@@ -79,10 +103,13 @@ npm run check                 # lint + typecheck + test + build
 npm run preview
 ```
 
-The Phase 02 handoff sequence `npm ci`, `npm run check`, and
-`npm run test:e2e` passed. Lint and strict TypeScript passed; 14 Vitest files
-and 84 tests passed; the production build completed. Playwright passed all 18
-Chromium tests across the configured viewports.
+The Phase 03 handoff sequence `npm ci`, `npm run check`, and
+`npm run test:e2e` passed. Lint and strict TypeScript passed; 18 Vitest files
+and 93 tests passed; the production build completed. Playwright passed all 42
+Chromium tests across the configured viewports, including direct route loads,
+unknown-route handling, in-app navigation, protected-route loading, responsive
+auth-card checks, and visible keyboard focus. Three auth-card screenshot
+baselines cover the current `/login` route at the configured viewports.
 
 ## Responsive and accessibility evidence
 
@@ -95,12 +122,15 @@ Chromium projects:
 | `tablet-768` | 768 × 1024 |
 | `mobile-375` | 375 × 812 |
 
-The suite checks horizontal overflow in the gallery, auth card, and account
-shell; verifies a visible computed focus outline after Tab; and checks focus
-entry, containment, Escape dismissal, and focus restoration for Dialog and
-AlertDialog at every viewport and for the mobile Sheet. Six committed
-`toHaveScreenshot` baselines cover the AuthCard and account shell at these
-viewports.
+`e2e/routing.spec.ts` verifies every public route and all protected paths by
+direct navigation, the default protected loading state, in-app navigation,
+unknown-route behavior, and horizontal overflow at the configured viewports.
+`e2e/design-system.spec.ts` checks the routed auth card, visible keyboard focus,
+and its visual baseline. Account-shell navigation and mobile Sheet focus
+containment/restoration remain covered by `src/components/account-shell.test.tsx`.
+Three committed `toHaveScreenshot` baselines cover the routed AuthCard at these
+viewports. The earlier gallery and account-shell screenshot baselines were
+removed when the gallery ceased to be an application route.
 
 Baselines were generated on macOS 26.6.2 with Playwright 1.63.0 and its pinned
 Chromium 153.0.8010.12 build (Playwright Chromium v1243). Regenerate only after
@@ -115,6 +145,7 @@ Then review the changed PNGs and record the OS, Playwright/Chromium versions,
 and viewport set in the commit message. Regular verification is
 `npm run test:e2e` without snapshot-update mode.
 
-No manual screen-reader session or physical tablet-device test was performed.
-No deployed, edge, backend, or live authentication behavior is claimed by these
-local checks.
+No manual screen-reader session, physical tablet-device test, deployed edge
+check, backend call, or live authentication flow was performed. The proxy test
+uses an ephemeral local upstream; it does not verify a running `feednow-auth`
+service.
