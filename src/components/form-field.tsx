@@ -1,11 +1,13 @@
 import * as React from 'react'
+import { useForm } from 'react-hook-form'
 
+import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 /*
  * FormField (Phase 02, step 3): one accessible text-input pattern composing
- * the shadcn Label and Input primitives.
+ * the shadcn Form, Label, and Input primitives.
  *
  * - Programmatic label association: the Label is always bound to the Input
  *   via htmlFor/id, so the control's accessible name is the label text.
@@ -24,11 +26,6 @@ import { Label } from '@/components/ui/label'
  * code mapping (Phase 04), and no form submission. Callers pass already-safe
  * strings; raw backend errors must never be handed to `error`.
  *
- * Deviation note: the step-3 breakdown names "shadcn Form/Label/Input".
- * The current shadcn Form is react-hook-form-coupled, and Phase 02 forbids
- * form submission and adds no react-hook-form dependency, so the Form
- * wiring (label association, aria-describedby, aria-invalid, role="alert")
- * is composed directly onto Label/Input with the same contract.
  */
 export type FormFieldProps = Omit<
   React.ComponentProps<'input'>,
@@ -59,6 +56,11 @@ function FormField({
   className,
   ...inputProps
 }: FormFieldProps) {
+  // FormProvider supplies shadcn's field context without adding submission
+  // behavior or validation rules to this presentation-only primitive.
+  const form = useForm<Record<string, string>>({
+    defaultValues: { [id]: '' },
+  })
   const hintId = hint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
   // The error leads so assistive tech announces the problem first; the
@@ -68,44 +70,46 @@ function FormField({
     undefined
 
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={id}>
-        {label}
-        {required && (
-          <>
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-            {/* Leading comma keeps the computed accessible name clean:
-                "Full name, required". */}
-            <span className="sr-only">, required</span>
-          </>
+    <Form {...form}>
+      <div className="grid gap-1.5">
+        <Label htmlFor={id}>
+          {label}
+          {required && (
+            <>
+              <span aria-hidden="true" className="text-destructive">
+                *
+              </span>
+              {/* Leading comma keeps the computed accessible name clean:
+                  "Full name, required". */}
+              <span className="sr-only">, required</span>
+            </>
+          )}
+        </Label>
+        {hint && (
+          <p id={hintId} className="text-sm text-muted-foreground">
+            {hint}
+          </p>
         )}
-      </Label>
-      {hint && (
-        <p id={hintId} className="text-sm text-muted-foreground">
-          {hint}
-        </p>
-      )}
-      <Input
-        id={id}
-        required={required}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        className={className}
-        {...inputProps}
-      />
-      {error && (
-        <p
-          id={errorId}
-          role="alert"
-          className="text-sm font-medium text-destructive"
-        >
-          <span>Error: </span>
-          {error}
-        </p>
-      )}
-    </div>
+        <Input
+          id={id}
+          required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          className={className}
+          {...inputProps}
+        />
+        {error && (
+          <p
+            id={errorId}
+            role="alert"
+            className="text-sm font-medium text-destructive"
+          >
+            <span>Error: </span>
+            {error}
+          </p>
+        )}
+      </div>
+    </Form>
   )
 }
 
