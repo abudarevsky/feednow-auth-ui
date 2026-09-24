@@ -3,15 +3,13 @@ import { describe, expect, it } from 'vitest'
 
 import App from '@/App'
 
-describe('placeholder route', () => {
-  it('renders the home placeholder heading', () => {
+describe('Phase 02 primitives gallery', () => {
+  it('renders the gallery heading and representative primitives', () => {
     render(<App />)
-    expect(
-      screen.getByRole('heading', { name: 'feednow-auth-ui' })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Static React scaffold placeholder.')
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Phase 02 design system' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Account access' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Account' })).toBeInTheDocument()
+    expect(screen.getByText('Could not load account details.')).toBeInTheDocument()
   })
 })
 

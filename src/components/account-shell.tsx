@@ -39,7 +39,7 @@ function AccountShell({ items, children }: AccountShellProps) {
             </SheetContent>
           </Sheet>
         </div>
-        <main>{children}</main>
+        <section aria-label="Account content">{children}</section>
       </div>
     </div>
   )

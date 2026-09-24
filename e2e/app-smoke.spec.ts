@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test'
 
-test('placeholder page renders from the built static artifact', async ({
+test('primitives gallery renders from the built static artifact', async ({
   page,
 }) => {
   await page.goto('/')
 
   await expect(
-    page.getByRole('heading', { name: 'feednow-auth-ui' })
+    page.getByRole('heading', { name: 'Phase 02 design system' })
   ).toBeVisible()
   await expect(
-    page.getByText('Static React scaffold placeholder.')
+    page.getByRole('heading', { name: 'Account access' })
   ).toBeVisible()
 })

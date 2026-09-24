@@ -19,7 +19,7 @@ type AuthCardProps = {
 /** Centered, content-sized card shared by future authentication screens. */
 function AuthCard({ title, description, children, footer }: AuthCardProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center p-lg">
+    <div className="flex min-h-screen items-center justify-center p-lg">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>
@@ -30,7 +30,7 @@ function AuthCard({ title, description, children, footer }: AuthCardProps) {
         <CardContent>{children}</CardContent>
         {footer && <CardFooter>{footer}</CardFooter>}
       </Card>
-    </main>
+    </div>
   )
 }
 
