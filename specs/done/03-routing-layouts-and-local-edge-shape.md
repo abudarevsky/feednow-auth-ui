@@ -29,3 +29,28 @@ Fetching a real session, login, or production CloudFront configuration.
 ## Handoff
 
 Record route table, proxy configuration, and direct-navigation test evidence.
+
+## Implementation handoff — 2026-09-24
+
+- Route table: public `/login`, `/signup`, `/verify-email`, `/forgot-password`,
+  `/reset-password`, and `/logout`; protected `/account`,
+  `/account/security`, and `/account/api-keys`; `/` is the entry page and all
+  unknown paths render a not-found page.
+- Protected-route state is injected (`loading`, `unauthenticated`, or
+  `authenticated`). `App` defaults to loading. No session discovery or auth
+  operation is implemented in this phase.
+- Vite proxies `/api/*` to `http://127.0.0.1:8000`, overridable with
+  `FEEDNOW_AUTH_ORIGIN`. The integration test verified exact path forwarding
+  and preservation of a mock 429 JSON response; `/login` remained SPA HTML.
+- `npm ci` passed (381 packages installed, 0 vulnerabilities).
+- `npm run check` passed: lint, strict TypeScript, 18 Vitest files / 93 tests,
+  and production build.
+- `npm run test:e2e` passed: 42 Chromium tests across 1280×800, 768×1024, and
+  375×812, including direct navigation to every route, default protected
+  loading, unknown-route handling, client-side navigation, viewport overflow,
+  keyboard focus, and auth-card screenshots.
+- No running backend, manual screen-reader session, physical tablet test,
+  production CloudFront behavior, or deployed smoke test was exercised.
+- Build-step commits: plan `93eba2e`; routes `989237d`; session guard
+  `799e510`; responsive layouts `cfd8f9a`; local proxy `8763a4a`; browser
+  evidence `80c3d63`.
