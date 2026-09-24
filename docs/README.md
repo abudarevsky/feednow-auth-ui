@@ -76,26 +76,27 @@ backend messages, field messages, raw response bodies, or exception text.
 
 `src/api/csrf.ts` copies a token from a readable cookie to a header for unsafe
 methods. `createFeedNowApiClient()` uses the proposed names `feednow_csrf` and
-`X-CSRF-Token`; no browser bootstrap route is currently defined or verified.
-Missing configured tokens block unsafe requests locally. The lower-level
+`X-CSRF-Token`. The Phase 00 contract proposes `/api/v1/csrf`; Managed Login
+Phase 05 owns final session/CSRF integration evidence. Missing configured
+tokens block unsafe requests locally. The lower-level
 `createApiClient()` remains configurable for isolated tests.
 
-The retained typed feature modules are `src/api/account.ts` for the
-source-backed `GET /v1/me` schema and `src/api/apiKeys.ts` for the source-backed
-organization key schemas. `src/types/browser-api.ts` contains only those
-profile and key response types. The methods are not wired to screens and the
-backend routers require explicit mounting and bearer authorization; their
-schemas do not establish browser cookie-session support.
+The retained typed feature modules are `src/api/account.ts` for the existing
+`GET /v1/me` contract and `src/api/apiKeys.ts` for the existing organization
+key contracts recorded in Phase 00. `src/types/browser-api.ts` contains only those
+profile and key response types. The methods are not wired to screens.
+Phase 05 must establish the browser-session authorization bridge before these
+existing `/v1` contracts are used by account pages.
 
 The custom credential, challenge, registration, verification, recovery,
 federation, session, logout, client-context, profile-mutation, and security
-methods have been removed. `feednow-auth` defines an OAuth router for
-`/oauth/login` and `/oauth/callback`, but its default app mounts only health;
-resource routers are supplied explicitly. There is no mounted browser session,
-logout, CSRF bootstrap, or Vispector handoff route. Phase 05 owns the reviewed
-navigation and cookie-session contract. The [Phase 00 contract](../specs/done/00-contract-reconciliation.md)
-remains planning evidence for the superseded custom-auth proposal. Local
-mocked transport tests do not prove service or deployed integration.
+methods have been removed. The Managed Login target and Phase 05 spec own
+backend navigation, session discovery, logout, CSRF, and Vispector handoff.
+Phase 05 directs implementation to reuse `/oauth/login` and `/oauth/callback`;
+the exact logout and browser-session schemas remain Phase 05 contract work.
+The Phase 00 contract is historical where it conflicts with the Managed Login
+specification. Local mocked transport tests do not prove service or deployed
+integration.
 
 ## Local API proxy
 

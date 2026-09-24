@@ -133,13 +133,13 @@ focused checks, and handoff evidence are complete.
      profile-mutation, and security methods/types. Preserve generic transport,
      safe errors, cancellation, CSRF adapter, and source-backed profile/key
      contracts; remove the obsolete custom-credential error-code mappings.
-     Inspection found OAuth login/callback router definitions, but
-     no default mount and no logout/session/CSRF-bootstrap/handoff routes; defer
-     navigation and browser cookie auth to Phase 05.
+     The Managed Login and Phase 05 specs direct implementation to reuse
+     `/oauth/login` and `/oauth/callback`; keep logout/session/CSRF-bootstrap/
+     handoff contract work in Phase 05 rather than infer it from backend code.
    - Non-goal: No React login flow, backend rewrite, Cognito SDK, or invented
      subscription/usage/admin endpoints.
    - Focused verification: `npm run test -- src/api/browser-modules.test.ts`
-     covers only retained profile/key paths; inspect route/module references
+     covers only retained profile/key paths; inspect frontend source references
      for removed credential/session calls and compile errors.
    - Handoff checks: `npm run check`; `npm run test:e2e` if this step changes
      routing or user-visible flows. Record both actual results and unperformed

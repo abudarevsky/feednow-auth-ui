@@ -60,19 +60,20 @@ The earlier module implementation used the Phase 00 draft contract. It is not
 current implementation evidence and must not be treated as approval for those
 custom-auth routes.
 
-## Managed Login revision — pending acceptance
+## Managed Login reconciliation
 
-The typed client has been reconciled with the Managed Login implementation
-review. Credential, challenge, registration, verification, recovery,
+The typed client has been reconciled with the Managed Login specification.
+Credential, challenge, registration, verification, recovery,
 federation, custom session/logout, client-context, profile-mutation, and
 security calls/types, and custom-credential-only error-code mappings, are
-removed. Only source-backed profile and API-key schemas remain. The backend's
-OAuth router defines `/oauth/login` and
-`/oauth/callback`, but `create_app()` mounts only health by default and there
-is no logout, browser session, CSRF bootstrap, or Vispector handoff route.
-Navigation and cookie-session behavior therefore remain Phase 05 work. This
-does not prove that optional profile or API-key routers are mounted in a
-running service or that they support browser cookies.
+removed. Only profile and API-key contracts identified in the Phase 00
+inventory remain. The specification names `/oauth/login` and
+`/oauth/callback` for Phase 05 reuse.
+Logout, browser-session, CSRF bootstrap, and Vispector handoff integration
+remain Phase 05 work. The earlier Phase 00 custom-credential paths are
+historical where they conflict with the Managed Login specification. This
+phase makes no claim about live service mounting, cookie authorization, or
+deployed behavior.
 
 Focused verification: `npm run test -- src/api/browser-modules.test.ts` passed
 (3 tests). `npm run check` passed: lint, typecheck, 131 tests across 22 files,
