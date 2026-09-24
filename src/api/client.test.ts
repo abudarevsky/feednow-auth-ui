@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { createApiClient } from '@/api/client'
+import { ApiRequestError } from '@/lib/api-errors'
 
 describe('typed API transport', () => {
   it('uses same-origin credentials and JSON headers/body', async () => {
@@ -51,5 +52,46 @@ describe('typed API transport', () => {
     const result = await createApiClient({ fetchImpl }).request<void>('/api/example', { method: 'DELETE' })
 
     expect(result).toMatchObject({ ok: true, status: 204, data: undefined })
+  })
+
+  it('throws safe mapped errors without retaining backend message text', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      code: 'unauthenticated',
+      message: 'token=must-not-leak',
+    }), { status: 401, headers: { 'content-type': 'application/json' } }))
+
+    await expect(createApiClient({ fetchImpl }).request('/api/private'))
+      .rejects.toMatchObject({
+        name: 'ApiRequestError',
+        kind: 'unauthenticated',
+        message: 'Please sign in again to continue.',
+      })
+    try {
+      await createApiClient({ fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(new Response(
+        JSON.stringify({ code: 'unauthenticated', message: 'token=must-not-leak' }),
+        { status: 401 },
+      )) }).request('/api/private')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiRequestError)
+      expect(JSON.stringify(error)).not.toContain('must-not-leak')
+    }
+  })
+
+  it('normalizes network and malformed successful response failures', async () => {
+    const failedFetch = vi.fn<typeof fetch>().mockRejectedValue(new Error('socket password=secret'))
+    await expect(createApiClient({ fetchImpl: failedFetch }).request('/api/example'))
+      .rejects.toMatchObject({ kind: 'network', message: 'We could not connect. Check your connection and try again.' })
+
+    const malformedFetch = vi.fn<typeof fetch>().mockResolvedValue(new Response('<html>internal</html>'))
+    await expect(createApiClient({ fetchImpl: malformedFetch }).request('/api/example'))
+      .rejects.toMatchObject({ kind: 'malformed_response', message: 'We could not process the server response. Please try again.' })
+  })
+
+  it('preserves request cancellation', async () => {
+    const abortError = new DOMException('cancelled', 'AbortError')
+    const fetchImpl = vi.fn<typeof fetch>().mockRejectedValue(abortError)
+
+    await expect(createApiClient({ fetchImpl }).request('/api/example'))
+      .rejects.toBe(abortError)
   })
 })

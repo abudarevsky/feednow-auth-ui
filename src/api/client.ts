@@ -1,4 +1,10 @@
 import { asApiPath, type ApiPath } from '@/api/path'
+import {
+  createMalformedResponseError,
+  createNetworkError,
+  isAbortError,
+  normalizeApiError,
+} from '@/lib/api-errors'
 
 type ApiMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -38,15 +44,38 @@ function createApiClient({ fetchImpl = fetch }: ApiClientOptions = {}): ApiClien
         body = JSON.stringify(options.body)
       }
 
-      const response = await fetchImpl(safePath, {
-        method,
-        headers,
-        body,
-        signal: options.signal,
-        credentials: 'same-origin',
-      })
-      const text = await response.text()
-      const data = text.length > 0 ? JSON.parse(text) as TResponse : undefined
+      let response: Response
+      try {
+        response = await fetchImpl(safePath, {
+          method,
+          headers,
+          body,
+          signal: options.signal,
+          credentials: 'same-origin',
+        })
+      } catch (error) {
+        if (isAbortError(error)) throw error
+        throw createNetworkError()
+      }
+
+      let text: string
+      try {
+        text = await response.text()
+      } catch (error) {
+        if (isAbortError(error)) throw error
+        throw createNetworkError()
+      }
+
+      let data: TResponse | undefined
+      if (text.length > 0) {
+        try {
+          data = JSON.parse(text) as TResponse
+        } catch {
+          if (response.ok) throw createMalformedResponseError()
+        }
+      }
+
+      if (!response.ok) throw normalizeApiError(response.status, data)
 
       return {
         ok: response.ok,
