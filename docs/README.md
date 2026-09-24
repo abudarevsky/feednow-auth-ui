@@ -7,7 +7,7 @@ presentation primitives and a temporary gallery at `/`; it does not implement
 authentication flows, account API calls, session behavior, or deployment.
 
 The current phase-02 requirements and task breakdown live in
-`specs/done/02-design-system-and-accessibility-primitives.md` and its accepted
+`specs/wip/02-design-system-and-accessibility-primitives.md` and its accepted
 breakdown. Future, unaccepted work remains in `specs/` and is not current
 behavior.
 
