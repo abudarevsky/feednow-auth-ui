@@ -19,8 +19,8 @@ type AuthCardProps = {
 /** Centered, content-sized card shared by future authentication screens. */
 function AuthCard({ title, description, children, footer }: AuthCardProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center p-lg">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center p-lg">
+      <Card className="w-full max-w-md" style={{ width: '100%', maxWidth: '28rem' }}>
         <CardHeader>
           <CardTitle>
             <h1 className="text-xl font-semibold">{title}</h1>

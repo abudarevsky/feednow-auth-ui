@@ -20,14 +20,36 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'desktop-1280',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        deviceScaleFactor: 1,
+      },
+    },
+    {
+      name: 'tablet-768',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 768, height: 1024 },
+        deviceScaleFactor: 1,
+      },
+    },
+    {
+      name: 'mobile-375',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 375, height: 812 },
+        deviceScaleFactor: 1,
+        isMobile: true,
+        hasTouch: true,
+      },
     },
   ],
   webServer: {
     command: 'npm run build && npm run preview',
     url: PREVIEW_URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 })

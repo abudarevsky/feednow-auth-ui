@@ -24,8 +24,8 @@ describe('AuthCard', () => {
     expect(
       screen.getByRole('button', { name: 'Create account' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('main').firstElementChild?.className).not.toMatch(
-      /\bh-\S+/,
-    )
+    const card = document.querySelector('[data-slot="card"]')
+    expect(card).toHaveClass('w-full', 'max-w-md')
+    expect(card?.className).not.toMatch(/\bh-\S+/)
   })
 })

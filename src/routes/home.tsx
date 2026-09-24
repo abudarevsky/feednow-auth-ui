@@ -6,6 +6,13 @@ import { EmptyState, ErrorState, LoadingBlock } from '@/components/state-blocks'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /** Temporary visual surface for Phase 02 primitives; routing replaces it in Phase 03. */
@@ -16,7 +23,7 @@ export function Home() {
         <h1 className="text-3xl font-semibold">Phase 02 design system</h1>
         <p className="mt-xs text-muted-foreground">Temporary primitives gallery.</p>
       </header>
-      <main className="mx-auto grid max-w-6xl gap-xl p-lg">
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-xl p-lg">
         <section aria-labelledby="theme-swatches">
           <h2 id="theme-swatches" className="mb-sm text-xl font-semibold">Theme swatches</h2>
           <div className="grid gap-sm sm:grid-cols-3">
@@ -76,6 +83,19 @@ export function Home() {
               <Skeleton aria-hidden="true" className="h-5 w-2/3" />
             </div>
           </div>
+        </section>
+
+        <section aria-labelledby="dialog-preview">
+          <h2 id="dialog-preview" className="mb-sm text-xl font-semibold">Dialog</h2>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">Open dialog preview</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Dialog preview</DialogTitle>
+              <DialogDescription>Keyboard focus stays inside this dialog until it closes.</DialogDescription>
+            </DialogContent>
+          </Dialog>
         </section>
       </main>
     </div>
