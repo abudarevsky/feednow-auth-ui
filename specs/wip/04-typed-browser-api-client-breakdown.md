@@ -91,3 +91,61 @@ focused checks, and handoff evidence are complete.
    - Handoff checks: `npm run check`; then `npm run test:e2e` is not required
      because this step adds no UI flow or routing.
    - Rollback: Revert the module commit; generic transport remains usable.
+
+6. Align the local proxy with the Phase 00 versioned path mapping — complete
+   - Scope: `src/lib/dev-proxy.ts`, `src/lib/dev-proxy.test.ts`,
+     `docs/README.md`, `specs/done/03-routing-layouts-and-local-edge-shape.md`.
+   - Change: Strip exactly one leading `/api` path segment before forwarding;
+     preserve `/v1`, query, method, body, and backend response. Keep frontend
+     SPA fallback separate. This corrects the completed Phase 03 proxy and is
+     required before browser modules can reach the current backend mount paths
+     locally.
+   - Non-goal: No CloudFront/API Gateway changes or backend routes.
+   - Focused verification: ephemeral-upstream proxy test asserts
+     `/api/v1/...` arrives as `/v1/...` with query intact and 429 JSON intact;
+     `/login` still returns the Vite SPA shell.
+   - Handoff checks: `npm run check`.
+   - Rollback: Revert proxy and handoff-doc changes; browser modules remain
+     typed but local upstream integration stops matching Phase 00.
+
+7. Close Phase 04 with verified implementation evidence
+   - Scope: `docs/README.md`, `specs/wip/04-typed-browser-api-client.md`,
+     `specs/wip/04-typed-browser-api-client-breakdown.md`, and the phase
+     lifecycle move to `specs/done/`.
+   - Change: Record final task commits, focused/full check outputs, exact
+     backend/edge gaps, and the Phase 00 contract link; move Phase 04 only after
+     all preceding tasks are committed and verified.
+   - Non-goal: No claims about new routes being mounted, live backend
+     integration, CloudFront, Cognito, or deployed behavior.
+   - Focused verification: reconcile each breakdown task and documented check
+     result against Git history and actual command output.
+   - Handoff checks: `npm run check`; no E2E because this phase adds no route
+     or visible UI flow.
+   - Rollback: Revert the docs/lifecycle commit; implementation commits remain
+     independently revertible.
+
+8. Reconcile the typed client with Cognito Managed Login — complete
+   - Scope: `src/api/auth.ts`, `src/api/clientContext.ts`, `src/api/account.ts`,
+     `src/types/browser-api.ts`, `src/lib/api-errors.ts`, corresponding
+     focused tests, and Phase 04 handoff docs.
+   - Change: Remove custom credential, challenge, signup, verification,
+     recovery, federation-start, custom session/logout, client-context,
+     profile-mutation, and security methods/types. Preserve generic transport,
+     safe errors, cancellation, CSRF adapter, and source-backed profile/key
+     contracts; remove the obsolete custom-credential error-code mappings.
+     Inspection found OAuth login/callback router definitions, but
+     no default mount and no logout/session/CSRF-bootstrap/handoff routes; defer
+     navigation and browser cookie auth to Phase 05.
+   - Non-goal: No React login flow, backend rewrite, Cognito SDK, or invented
+     subscription/usage/admin endpoints.
+   - Focused verification: `npm run test -- src/api/browser-modules.test.ts`
+     covers only retained profile/key paths; inspect route/module references
+     for removed credential/session calls and compile errors.
+   - Handoff checks: `npm run check`; `npm run test:e2e` if this step changes
+     routing or user-visible flows. Record both actual results and unperformed
+     backend/Cognito checks before closing Phase 04.
+   - Rollback: Revert this reconciliation commit; no data migration.
+
+The earlier step 7 closure is deferred until step 8 and its new target-contract
+review are complete. Earlier completion notes remain implementation history,
+not approval to ship the custom-auth methods.

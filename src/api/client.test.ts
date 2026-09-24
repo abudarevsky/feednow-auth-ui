@@ -88,17 +88,17 @@ describe('typed API transport', () => {
   })
 
   it.each([
-    [401, 'invalid_credentials', 'validation'],
-    [403, 'account_disabled', 'forbidden'],
-  ] as const)('normalizes Phase 00 auth error %s/%s safely', async (status, code, kind) => {
+    [401, 'unauthenticated', 'unauthenticated'],
+    [403, 'forbidden', 'forbidden'],
+  ] as const)('normalizes service error %s/%s safely', async (status, code, kind) => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       code,
       message: 'private backend detail',
     }), { status }))
 
-    await expect(createApiClient({ fetchImpl }).request('/api/v1/auth/login', { method: 'POST', body: { password: 'secret' } }))
-      .rejects.toMatchObject({ kind, code, message: kind === 'validation'
-        ? 'Check the information and try again.'
+    await expect(createApiClient({ fetchImpl }).request('/api/v1/me'))
+      .rejects.toMatchObject({ kind, code, message: kind === 'unauthenticated'
+        ? 'Please sign in again to continue.'
         : 'You do not have permission to do that.' })
   })
 

@@ -75,26 +75,27 @@ recognized service error codes to fixed UI-safe messages. It does not expose
 backend messages, field messages, raw response bodies, or exception text.
 
 `src/api/csrf.ts` copies a token from a readable cookie to a header for unsafe
-methods. `createFeedNowApiClient()` uses the Phase 00 names `feednow_csrf` and
-`X-CSRF-Token`; its caller must first call the auth module's `bootstrapCsrf()`
-endpoint. Missing tokens block unsafe requests locally. The lower-level
+methods. `createFeedNowApiClient()` uses the proposed names `feednow_csrf` and
+`X-CSRF-Token`; no browser bootstrap route is currently defined or verified.
+Missing configured tokens block unsafe requests locally. The lower-level
 `createApiClient()` remains configurable for isolated tests.
 
-Typed feature modules live in `src/api/auth.ts`, `account.ts`, `apiKeys.ts`,
-and `clientContext.ts`, with browser DTOs in `src/types/browser-api.ts`. They
-cover context/session, login/challenge, handoff/federation, registration,
-verification/recovery, logout, profile/security, and organization-scoped
-key list/create/revoke requests. Auth status variants, service enums,
-pagination, one-time key creation, opaque IDs, request cancellation, and
-safe auth error codes are represented by types. Feature modules receive the
-shared client as a dependency; no screen currently calls them.
+The retained typed feature modules are `src/api/account.ts` for the
+source-backed `GET /v1/me` schema and `src/api/apiKeys.ts` for the source-backed
+organization key schemas. `src/types/browser-api.ts` contains only those
+profile and key response types. The methods are not wired to screens and the
+backend routers require explicit mounting and bearer authorization; their
+schemas do not establish browser cookie-session support.
 
-These modules implement only the browser transport contract. Most of the
-corresponding browser routes are not implemented in `feednow-auth`; see the
-[Phase 00 contract](../specs/done/00-contract-reconciliation.md) and Phase 05
-plan. Source-backed `/v1/me` and API-key schemas are not proof of mounted
-cookie-session browser routes. Do not treat local mocked transport tests as
-service or deployed integration evidence.
+The custom credential, challenge, registration, verification, recovery,
+federation, session, logout, client-context, profile-mutation, and security
+methods have been removed. `feednow-auth` defines an OAuth router for
+`/oauth/login` and `/oauth/callback`, but its default app mounts only health;
+resource routers are supplied explicitly. There is no mounted browser session,
+logout, CSRF bootstrap, or Vispector handoff route. Phase 05 owns the reviewed
+navigation and cookie-session contract. The [Phase 00 contract](../specs/done/00-contract-reconciliation.md)
+remains planning evidence for the superseded custom-auth proposal. Local
+mocked transport tests do not prove service or deployed integration.
 
 ## Local API proxy
 

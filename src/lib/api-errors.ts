@@ -22,8 +22,6 @@ const KNOWN_CODES = new Set([
   'conflict',
   'internal_error',
   'rate_limited',
-  'invalid_credentials',
-  'account_disabled',
 ])
 
 const SAFE_REQUEST_ID = /^[A-Za-z0-9._:-]{1,128}$/
@@ -60,8 +58,6 @@ class ApiRequestError extends Error {
 }
 
 function kindForResponse(status: number, code?: string): ApiErrorKind {
-  if (code === 'invalid_credentials') return 'validation'
-  if (code === 'account_disabled') return 'forbidden'
   if (status === 401 || code === 'unauthenticated') return 'unauthenticated'
   if (status === 403 || code === 'forbidden') return 'forbidden'
   if (status === 404 || code === 'not_found') return 'not_found'
