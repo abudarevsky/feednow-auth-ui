@@ -14,7 +14,7 @@ then to `specs/done/` only after the build reviewer accepts evidence.
 | 01 | UI repository scaffold and quality baseline | 00 |
 | 02 | Accessible emerald design system | 01 |
 | 03 | Router, layouts, local same-origin edge shape | 01, 02 |
-| 04 | Typed API client, safe errors, and CSRF support | 01 |
+| 04 | Typed API client, safe errors, and CSRF support | 00, 01 |
 | 05 | Backend browser-contract implementation | 00 |
 | 06 | Client context, session discovery, protected routing | 03, 04, 05 |
 | 07 | Login, challenges, and validated Vispector handoff | 06 |
