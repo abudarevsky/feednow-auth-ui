@@ -1,10 +1,11 @@
 # Phase 04 implementation breakdown — Typed browser API client
 
-This work proceeds at the user's direction while Phase 00 remains in `wip`.
-Commit the numbered build steps in order. The Phase 00 browser endpoint and
-CSRF contract details remain deferred: do not invent endpoint paths, request or
-response schemas, or fixed cookie/header names. Phase 04 stays in `wip` until
-the deferred contract-dependent modules and integration are resolved.
+This work proceeds at the user's direction with the Phase 00 gate deferred.
+The Phase 00 summary is now in `specs/done/`, but it still contains no browser
+endpoint mappings or CSRF schemas. Commit the numbered build steps in order.
+Do not invent endpoint paths, request/response schemas, or fixed cookie/header
+names. Phase 04 stays in `wip` until the deferred contract-dependent modules
+and integration are resolved.
 
 ## Build steps
 
