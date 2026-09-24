@@ -44,7 +44,7 @@ Earlier commits implemented the shared transport, safe error mapper, and CSRF
 adapter. The typed custom-auth modules were also committed at that point, but
 their proposed endpoint contract has since been superseded by the Managed
 Login reconciliation below. Those historical commits remain in Git; the
-current source exposes only verified profile and API-key schema calls.
+current source exposes only typed profile and API-key schema calls.
 
 - `0434c8b` — same-origin typed JSON transport, `/api/*` path validation,
   same-origin credentials, and cancellation passthrough.

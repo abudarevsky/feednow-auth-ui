@@ -131,7 +131,7 @@ in order. Move Phase 04 to `done` only after its final checks and handoff record
    - Change: Remove custom credential, challenge, signup, verification,
      recovery, federation-start, custom session/logout, client-context,
      profile-mutation, and security methods/types. Preserve generic transport,
-     safe errors, cancellation, CSRF adapter, and source-backed profile/key
+     safe errors, cancellation, CSRF adapter, and Phase 00 profile/key
      contracts; remove the obsolete custom-credential error-code mappings.
      The Managed Login and Phase 05 specs direct implementation to reuse
      `/oauth/login` and `/oauth/callback`; keep logout/session/CSRF-bootstrap/
