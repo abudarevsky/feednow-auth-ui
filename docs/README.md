@@ -100,12 +100,10 @@ service or deployed integration evidence.
 
 `vite.config.ts` proxies relative `/api/*` requests to
 `http://127.0.0.1:8000` by default, matching the local `feednow-auth` server.
-Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The Phase 00 mapping
-requires stripping exactly the leading `/api` before forwarding, preserving
-the versioned `/v1` path, query, and backend response status, content type, and
-body. The implementation currently still forwards `/api` unchanged; this is
-a local integration gap. It does not rewrite frontend routes; Vite serves the
-SPA shell for routes such as `/login`.
+Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The proxy strips
+exactly the leading `/api` before forwarding, preserving the versioned `/v1`
+path, query, and backend response status, content type, and body. It does not
+rewrite frontend routes; Vite serves the SPA shell for routes such as `/login`.
 `src/lib/dev-proxy.test.ts` verifies both behaviors against ephemeral local
 servers, including a JSON 429 API response that remains JSON rather than
 becoming `index.html`.

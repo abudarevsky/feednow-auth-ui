@@ -3,6 +3,7 @@ function createApiProxy(target: string) {
     '/api': {
       target,
       changeOrigin: true,
+      rewrite: (path: string) => path.startsWith('/api/') ? path.slice('/api'.length) : path,
     },
   }
 }

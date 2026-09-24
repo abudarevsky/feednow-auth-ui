@@ -32,7 +32,7 @@ describe('local API proxy', () => {
     upstream = undefined
   })
 
-  it('forwards API paths and preserves backend errors while frontend routes use the SPA shell', async () => {
+  it('strips the browser API prefix, preserves backend errors, and keeps frontend routes on the SPA shell', async () => {
     mswServer.close()
     mswServer.listen({ onUnhandledRequest: 'bypass' })
     try {
@@ -59,8 +59,8 @@ describe('local API proxy', () => {
     const viteAddress = vite.httpServer?.address()
     if (!viteAddress || typeof viteAddress === 'string') throw new Error('Vite did not bind a TCP port')
 
-    const apiResponse = await request(`http://127.0.0.1:${viteAddress.port}/api/test?source=ui`)
-    expect(forwardedUrl).toBe('/api/test?source=ui')
+    const apiResponse = await request(`http://127.0.0.1:${viteAddress.port}/api/v1/test?source=ui`)
+    expect(forwardedUrl).toBe('/v1/test?source=ui')
     expect(apiResponse.statusCode).toBe(429)
     expect(apiResponse.contentType).toContain('application/json')
     expect(JSON.parse(apiResponse.body)).toEqual({ error: 'rate_limited' })
