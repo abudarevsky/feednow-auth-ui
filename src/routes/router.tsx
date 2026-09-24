@@ -2,12 +2,15 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { EntryPage, NotFoundPage, RoutePlaceholder } from '@/routes/route-placeholders'
 import { routeDefinitions } from '@/routes/route-table'
+import { ProtectedRoute } from '@/routes/route-guards'
 
 const router = createBrowserRouter([
   { path: '/', element: <EntryPage /> },
   ...routeDefinitions.map(({ path, label }) => ({
     path,
-    element: <RoutePlaceholder path={path} label={label} />,
+    element: path.startsWith('/account') ? (
+      <ProtectedRoute><RoutePlaceholder path={path} label={label} /></ProtectedRoute>
+    ) : <RoutePlaceholder path={path} label={label} />,
   })),
   { path: '*', element: <NotFoundPage /> },
 ])
