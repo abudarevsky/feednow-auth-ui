@@ -1,6 +1,6 @@
 # Phase 04 — Typed browser API client
 
-**Dependency:** Phase 01  
+**Dependency:** Phases 00 and 01
 **Handoff to:** Phases 06–10
 
 ## Goal
@@ -32,12 +32,12 @@ Publish API module contract coverage and required backend fixture/schema version
 
 ## Implementation progress — 2026-09-24
 
-Phase 04 is active but incomplete. At the user's direction, implementation
-proceeds with the Phase 00 gate deferred. The Phase 00 summary has been moved
-to `specs/done/`, but it contains no canonical browser endpoint mappings,
-feature request/response schemas, CSRF bootstrap contract, or fixed CSRF
-cookie/header names. The current service error envelope is frozen in the
-`feednow-auth` source, but it is not a substitute for those browser contracts.
+Phase 04 is active but incomplete. The user authorized proceeding before Phase
+00 was reconciled; the missing contract is now recorded in
+`specs/done/00-contract-reconciliation.md`. That document defines canonical
+browser paths and schemas, names `feednow_csrf` and `X-CSRF-Token`, and labels
+all new routes as Phase 05 work. The backend error envelope and currently
+frozen `/v1` schemas remain distinguished from proposed browser additions.
 
 Implemented and committed:
 
@@ -48,7 +48,7 @@ Implemented and committed:
 - `02d0694` — configurable readable-cookie to request-header CSRF adapter for
   unsafe methods, without invented defaults.
 
-The phase remains in `wip`. Auth, account, API-key, and client-context modules,
-their payload schemas, and the real CSRF configuration remain deferred until
-the Phase 00/05 browser contract is available. No backend request, production
-endpoint, token storage, or sensitive-data logging was added.
+The phase remains in `wip`. Auth, account, API-key, and client-context modules
+and their payload schemas remain to be implemented against the Phase 00
+contract. No backend request, production endpoint, token storage, or
+sensitive-data logging was added.

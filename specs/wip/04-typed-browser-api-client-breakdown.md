@@ -1,11 +1,11 @@
 # Phase 04 implementation breakdown — Typed browser API client
 
-This work proceeds at the user's direction with the Phase 00 gate deferred.
-The Phase 00 summary is now in `specs/done/`, but it still contains no browser
-endpoint mappings or CSRF schemas. Commit the numbered build steps in order.
-Do not invent endpoint paths, request/response schemas, or fixed cookie/header
-names. Phase 04 stays in `wip` until the deferred contract-dependent modules
-and integration are resolved.
+The user authorized proceeding before the Phase 00 gate was reconciled. The
+contract is now specified in
+`specs/done/00-contract-reconciliation.md`; implement only the paths and
+schemas recorded there. Commit numbered build steps in order. New backend
+routes remain Phase 05 work. Phase 04 stays in `wip` until feature modules,
+focused checks, and handoff evidence are complete.
 
 ## Build steps
 
@@ -65,13 +65,29 @@ and integration are resolved.
 4. Record implemented boundary and deferred contract work
    - Scope: `docs/README.md`, `specs/wip/04-typed-browser-api-client.md`,
      `specs/wip/04-typed-browser-api-client-breakdown.md`.
-   - Change: Document verified transport/error/CSRF behavior and tests. Record
-     unresolved endpoint mappings, feature request/response types, CSRF bootstrap
-     path/schema, and fixed cookie/header names as Phase 00/05 dependencies.
-     Keep Phase 04 in `wip`; do not claim typed feature modules or phase
-     acceptance until those contracts are approved and implemented.
+   - Change: Document verified transport/error/CSRF behavior and tests. Link
+     the Phase 00 schemas and state clearly which routes remain unimplemented
+     in the backend. Keep Phase 04 in `wip` until typed feature modules and
+     handoff evidence are complete.
    - Non-goal: No browser feature flows or backend implementation.
    - Focused verification: Documentation matches shipped code and test names;
      final available gate is `npm ci && npm run check`.
    - Handoff checks: Record actual results and exact deferred acceptance gaps.
    - Rollback: Revert docs only; no data or migration effect.
+
+5. Add typed feature API modules for the Phase 00 browser contract
+   - Scope: `src/api/auth.ts`, `src/api/account.ts`, `src/api/apiKeys.ts`,
+     `src/api/clientContext.ts`, `src/types/`, and focused module tests.
+   - Change: Declare request/response types from the Phase 00 contract and
+     implement typed functions using the shared transport. Configure unsafe
+     methods with cookie `feednow_csrf` and header `X-CSRF-Token`; bootstrap
+     through the specified endpoint before unsafe flows. Preserve one-time
+     API-key response semantics and opaque IDs/state/challenges.
+   - Non-goal: No UI flows, backend handlers, retries that replay credentials,
+     logging, persistence, or redirect authorization.
+   - Focused verification: mocked-transport module tests cover method/path/body,
+     response discriminator, error mapping, cancellation, and CSRF behavior;
+     assert secrets and backend messages are not retained or exposed.
+   - Handoff checks: `npm run check`; then `npm run test:e2e` is not required
+     because this step adds no UI flow or routing.
+   - Rollback: Revert the module commit; generic transport remains usable.
