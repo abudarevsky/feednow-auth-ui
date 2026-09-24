@@ -4,30 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>feednow-auth-ui</title>
-    <script>
-      // Apply the stored (or system) theme before first paint so a dark
-      // choice never flashes light. Mirrors getInitialTheme in
-      // src/lib/theme.ts exactly: valid stored choice wins, anything else
-      // (absent, corrupt, unreadable storage) falls back to the system
-      // preference, then light. Only user actions persist a choice.
-      (function () {
-        var stored = null;
-        try {
-          stored = localStorage.getItem('feednow-theme');
-        } catch (err) {
-          /* Storage unavailable: behave like an absent value. */
-        }
-        var dark;
-        if (stored === 'dark' || stored === 'light') {
-          dark = stored === 'dark';
-        } else {
-          dark =
-            typeof window.matchMedia === 'function' &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
-        document.documentElement.classList.toggle('dark', dark);
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

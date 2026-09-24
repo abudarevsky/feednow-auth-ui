@@ -11,8 +11,7 @@ import { Button } from '@/components/ui/button'
  * src/test/theme-contrast.test.ts). These tests pin the variant/size class
  * contract, the accessibility behavior (visible focus indicator, native
  * disabled state, aria-invalid wiring, link semantics via asChild), and the
- * absence of `dark:` classes — dark mode flips the semantic variables under
- * the `.dark` class in src/index.css instead, so no usage site needs one.
+ * absence of dark-mode classes during this light-only phase.
  */
 describe('Button variants', () => {
   it('renders a native button exposing its accessible name', () => {
@@ -31,7 +30,7 @@ describe('Button variants', () => {
 
   it.each([
     ['secondary', 'bg-secondary', 'text-secondary-foreground'],
-    ['destructive', 'bg-destructive', 'text-destructive-foreground'],
+    ['destructive', 'bg-destructive', 'text-white'],
     ['outline', 'border', 'bg-background'],
     ['ghost', 'hover:bg-accent', 'hover:text-accent-foreground'],
     ['link', 'text-primary', 'hover:underline'],
@@ -121,8 +120,8 @@ describe('Button accessibility', () => {
   })
 })
 
-describe('Button dark-mode class strategy', () => {
-  it('ships no dark: classes because theme flips ride the semantic variables', () => {
+describe('Button light-only styles', () => {
+  it('ships no dark mode utility classes in this light-only phase', () => {
     const variants = [
       'default',
       'secondary',
@@ -141,7 +140,7 @@ describe('Button dark-mode class strategy', () => {
       </>,
     )
     for (const element of Array.from(container.querySelectorAll('button'))) {
-      expect(element.className).not.toMatch(/(^|\s)dark:/)
+      expect(element.className).not.toContain('dark:')
     }
   })
 })

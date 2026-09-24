@@ -3,17 +3,14 @@
 import type { CSSProperties } from 'react'
 import { toast, Toaster as Sonner, type ToasterProps } from 'sonner'
 
-import { useTheme } from '@/hooks/use-theme'
 import { cn } from '@/lib/utils'
 
 const TOAST_AUTO_DISMISS_MS = 5000
 
 const Toaster = ({ className, ...props }: ToasterProps) => {
-  const { theme } = useTheme()
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       closeButton
       duration={TOAST_AUTO_DISMISS_MS}
       className={cn('toaster group', className)}
@@ -30,4 +27,5 @@ const Toaster = ({ className, ...props }: ToasterProps) => {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Toaster, toast, TOAST_AUTO_DISMISS_MS }
