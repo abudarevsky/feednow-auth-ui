@@ -29,3 +29,26 @@ Login UI, account screens, backend routes, or token storage.
 ## Handoff
 
 Publish API module contract coverage and required backend fixture/schema version.
+
+## Implementation progress — 2026-09-24
+
+Phase 04 is active but incomplete. At the user's direction, implementation
+proceeds with the Phase 00 gate deferred. The Phase 00 summary has been moved
+to `specs/done/`, but it contains no canonical browser endpoint mappings,
+feature request/response schemas, CSRF bootstrap contract, or fixed CSRF
+cookie/header names. The current service error envelope is frozen in the
+`feednow-auth` source, but it is not a substitute for those browser contracts.
+
+Implemented and committed:
+
+- `0434c8b` — same-origin typed JSON transport, `/api/*` path validation,
+  same-origin credentials, and cancellation passthrough.
+- `8e2c319` — safe error normalization from recognized HTTP statuses and
+  service codes; backend text and exception details are discarded.
+- `02d0694` — configurable readable-cookie to request-header CSRF adapter for
+  unsafe methods, without invented defaults.
+
+The phase remains in `wip`. Auth, account, API-key, and client-context modules,
+their payload schemas, and the real CSRF configuration remain deferred until
+the Phase 00/05 browser contract is available. No backend request, production
+endpoint, token storage, or sensitive-data logging was added.

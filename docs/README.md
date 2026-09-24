@@ -65,6 +65,22 @@ state, interpret query parameters, or perform authentication. Account
 navigation uses React Router links and marks the current link with
 `aria-current="page"`.
 
+## Typed API transport foundation
+
+`src/api/client.ts` provides the shared JSON transport for relative
+`/api/*` requests. It sets same-origin credentials and JSON headers, validates
+paths before fetch, accepts caller cancellation through `AbortSignal`, and
+returns typed response bodies. `src/lib/api-errors.ts` maps HTTP status and
+recognized service error codes to fixed UI-safe messages. It does not expose
+backend messages, field messages, raw response bodies, or exception text.
+
+`src/api/csrf.ts` can copy a token from a configured readable cookie to a
+configured header for unsafe methods. Cookie/header names and CSRF bootstrap
+remain unset because the Phase 00/05 browser contract has not specified them.
+The API client does not yet provide feature-specific auth, account, API-key,
+or client-context modules; those require approved endpoint and payload schemas.
+No screen currently calls the transport.
+
 ## Local API proxy
 
 `vite.config.ts` proxies relative `/api/*` requests to
@@ -86,10 +102,10 @@ npm ci
 npm run dev
 ```
 
-Vite serves the app on port 3000. Browser API requests, when introduced, must
-remain relative `/api/...` calls through typed API modules; Phase 02 makes no
-backend calls. The static production output is `dist/`, intended for private S3
-hosting behind CloudFront in the later hosting phases.
+Vite serves the app on port 3000. Future browser calls must remain relative
+`/api/...` requests through the typed transport and feature modules. No current
+screen makes backend calls. The static production output is `dist/`, intended
+for private S3 hosting behind CloudFront in the later hosting phases.
 
 Available commands:
 
