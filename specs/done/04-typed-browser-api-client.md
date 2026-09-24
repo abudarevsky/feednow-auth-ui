@@ -10,14 +10,14 @@ Provide a single safe typed transport boundary for the approved browser contract
 ## Work boundary
 
 - Implement API modules, request/response types, safe error normalization,
-  request cancellation/loading conventions, and CSRF header/cookie support from
-  Phase 00.
+  request cancellation/loading conventions, and the reusable CSRF adapter for
+  the retained contracts.
 - Use contract fixtures/test server only; do not invent a production backend
   implementation in the UI.
 
 ## Acceptance criteria
 
-- Components can consume the shared transport and source-backed typed modules
+- Components can consume the shared transport and spec-grounded typed modules
   without distributed fetch calls.
 - Tests cover safe error mapping, rate-limit, network, malformed-response,
   cancellation, and retained profile/key path behavior without exposing raw
@@ -30,18 +30,15 @@ Provide a single safe typed transport boundary for the approved browser contract
 
 Login UI, account screens, backend routes, or token storage.
 
-## Handoff
+## Handoff — complete 2026-09-24
 
-Publish API module contract coverage and required backend fixture/schema version.
-
-## Implementation progress — 2026-09-24
-
-Phase 04 is active but incomplete. The user authorized proceeding before Phase
-00 was reconciled; the missing contract is now recorded in
-`specs/done/00-contract-reconciliation.md`. That document defines canonical
-browser paths and schemas, names `feednow_csrf` and `X-CSRF-Token`, and labels
-all new routes as Phase 05 work. The backend error envelope and currently
-frozen `/v1` schemas remain distinguished from proposed browser additions.
+The Managed Login specification is authoritative. Phase 00 remains a historical
+contract record where it conflicts with that specification. The shared
+transport, safe error mapper, and configurable CSRF adapter are retained. The
+browser modules retain only the existing profile and API-key contracts in the
+Phase 00 inventory; no custom credential API is exposed. Phase 05 owns login
+and logout navigation integration, session discovery, CSRF bootstrap and
+validation, the cookie-auth bridge, Vispector handoff, and new account data.
 
 Earlier commits implemented the shared transport, safe error mapper, and CSRF
 adapter. The typed custom-auth modules were also committed at that point, but
@@ -75,7 +72,14 @@ historical where they conflict with the Managed Login specification. This
 phase makes no claim about live service mounting, cookie authorization, or
 deployed behavior.
 
-Focused verification: `npm run test -- src/api/browser-modules.test.ts` passed
-(3 tests). `npm run check` passed: lint, typecheck, 131 tests across 22 files,
-and production build. E2E was not run because no UI route or flow changed. No
-live backend, Cognito, CloudFront, or deployment behavior was tested.
+Focused verification: `npm run test -- src/api/browser-modules.test.ts`
+passed (3 tests); `npm run test -- src/lib/dev-proxy.test.ts` passed (1 test).
+The final `npm run check` passed: lint, typecheck, 131 tests across 22 files,
+and production build. E2E was not run because no route or visible UI flow
+changed. No live backend, Cognito, CloudFront, or deployment behavior was
+tested.
+
+Task commits: `0434c8b` transport; `8e2c319` safe errors; `02d0694` CSRF
+adapter; `0f4caa6` initial typed modules (reconciled by `a245246`); `afde58d`
+local proxy mapping; `44f1dbd` Phase 03 proxy evidence; `e190601` spec-grounded
+Phase 04 contract correction. The task breakdown records the commit sequence.

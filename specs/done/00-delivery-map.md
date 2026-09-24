@@ -1,38 +1,41 @@
-# feednow-auth-ui delivery map
+# feednow-auth-ui delivery map — Cognito Managed Login revision
 
 ## Source and lifecycle
 
-This is the dependency map for
-[the merged specification](feednow-auth-ui-specification.md). It defines future
-work only; the current-state baseline is [docs/README.md](../../docs/README.md).
-Each numbered file is an independently reviewable unit. A phase moves to
-`specs/wip/` only after the planner and plan reviewer accept its breakdown,
-then to `specs/done/` only after the build reviewer accepts evidence.
+The [target specification](../draft/feednow-auth-ui-specification.md) replaces
+the custom-auth plan. Completed Phase 00–03 files record prior decisions and
+verified implementation; this revision supersedes their future auth paths
+without rewriting their history. Phase 04 is complete; Phase 05 remains the
+smallest planned phase and stays in `specs/draft/` until accepted. Current
+behavior remains in [docs/README.md](../../docs/README.md).
 
-| Phase | Unit | Depends on |
+| Phase | Reviewable unit | Depends on |
 | --- | --- | --- |
-| 01 | UI repository scaffold and quality baseline | 00 |
-| 02 | Accessible emerald design system | 01 |
-| 03 | Router, layouts, local same-origin edge shape | 01, 02 |
-| 04 | Typed API client, safe errors, and CSRF support | 00, 01 |
-| 05 | Backend browser-contract implementation | 00 |
-| 06 | Client context, session discovery, protected routing | 03, 04, 05 |
-| 07 | Login, challenges, and validated Vispector handoff | 06 |
-| 08 | Registration, verification, recovery, federation start | 04, 05, 07 |
-| 09 | Account and security views | 04, 05, 06 |
-| 10 | API-key account management | 04, 05, 06 |
-| 11 | Logout, cross-flow E2E, and accessibility hardening | 07, 08, 09, 10 |
-| 12 | Static artifact and private S3/OAC | 01 |
-| 13 | Account CloudFront API behavior, TLS, DNS, headers | 05, 11, 12 |
+| 01–03 | Scaffold, UI primitives, router/edge foundation (completed) | Historical |
+| 04 | Reconcile typed browser client with Managed Login boundary (completed) | 00–03 |
+| 05 | Mount/verify backend OAuth, browser session, logout, registered handoff, and account contracts | 04 contract inventory; existing backend OAuth work |
+| 06 | Session discovery and protected route redirect with destination restore | 03–05 |
+| 07 | Managed Login entry and Vispector handoff | 05–06 |
+| 08 | Legacy auth route migration and Cognito self-service journey verification | 05–07 |
+| 09 | Profile, subscription, usage, account status, authorized admin views | 05–06 |
+| 10 | API-key management | 05–06 |
+| 11 | Logout, cross-flow E2E, accessibility hardening | 07–10 |
+| 12 | Static artifact, private S3/OAC | 01 |
+| 13 | CloudFront API/OAuth behavior, TLS, DNS, headers | 05, 11, 12 |
 | 14 | CI/CD and non-production deployed verification | 11, 13 |
 
 ## Invariants
 
-- `feednow-auth` remains the only authentication, session, Cognito, redirect,
-  API-key-security, and persistence authority.
-- Browser calls are relative `/api/*`; UI routes and API errors never share
-  an SPA fallback response.
-- No frontend phase stores secrets or long-lived tokens, trusts browser
-  redirect/client data, or implements organization-management UI.
-- Local test success is distinct from browser, CloudFront, Cognito, DNS, and
-  deployed smoke evidence.
+- Cognito Managed Login is the only interactive authentication UI. The Python
+  backend owns OAuth, sessions, logout, shadow registration, and redirect
+  authorization. The frontend owns one backend-discovered session view only.
+- Existing `/oauth/login` and `/oauth/callback` code is reused and mounted;
+  unimplemented browser-session/logout/handoff contracts are not presumed live.
+- The UI does not accept passwords or codes, handle Cognito client secrets or
+  tokens, merge users by email, or approve Vispector callback destinations.
+- Browser calls are same-origin `/api/*`; OAuth and JSON API failures must
+  never receive the SPA shell.
+- Backend authorization governs account/admin/key data and mutations. No
+  Shopify integration or unrelated product functionality is part of this plan.
+- Local mock results, browser tests, edge assertions, and deployed Cognito
+  smoke are recorded as distinct evidence.

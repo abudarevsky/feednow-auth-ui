@@ -1,15 +1,14 @@
 # Phase 04 implementation breakdown — Typed browser API client
 
-The user authorized proceeding before the Phase 00 gate was reconciled. The
-contract is now specified in
-`specs/done/00-contract-reconciliation.md`; implement only the paths and
-schemas recorded there. Commit numbered build steps in order. New backend
-routes remain Phase 05 work. Phase 04 stays in `wip` until feature modules,
-focused checks, and handoff evidence are complete.
+The Managed Login specification is authoritative. Phase 00 is historical where
+it conflicts with Managed Login, and Phase 05 owns browser navigation, session,
+logout, CSRF, and handoff integration. Implement only the shared transport and
+profile/API-key contracts retained by this phase. Commit numbered build steps
+in order. Move Phase 04 to `done` only after its final checks and handoff record.
 
 ## Build steps
 
-1. Add a same-origin typed JSON transport
+1. Add a same-origin typed JSON transport — complete (`0434c8b`)
    - Scope: `src/api/client.ts`, `src/api/path.ts`, focused tests.
    - Change: Provide one fetch boundary for relative `/api/*` paths; include
      `Accept: application/json`, same-origin credentials, JSON body encoding,
@@ -24,7 +23,7 @@ focused checks, and handoff evidence are complete.
    - Handoff checks: `npm run check`.
    - Rollback: Revert the commit; removes the common request boundary only.
 
-2. Normalize service errors into safe UI errors
+2. Normalize service errors into safe UI errors — complete (`8e2c319`)
    - Scope: `src/types/api.ts`, `src/lib/api-errors.ts`, `src/api/client.ts`,
      focused tests.
    - Change: Parse the existing service envelope (`code`, `message`,
@@ -44,7 +43,7 @@ focused checks, and handoff evidence are complete.
    - Rollback: Revert the commit; removes error types/mapping and integration
      with the transport.
 
-3. Add configurable CSRF cookie-to-header support
+3. Add configurable CSRF cookie-to-header support — complete (`02d0694`)
    - Scope: `src/api/csrf.ts`, `src/api/client.ts`, focused tests.
    - Change: Read a caller-configured readable cookie and copy its value into a
      caller-configured header for unsafe methods only. Do not hard-code either
@@ -62,12 +61,12 @@ focused checks, and handoff evidence are complete.
    - Rollback: Revert the commit; removes the optional CSRF adapter and request
      integration; no server or cookie changes.
 
-4. Record implemented boundary and deferred contract work — complete
+4. Record implemented boundary and deferred contract work — complete (`ae39893`)
    - Scope: `docs/README.md`, `specs/wip/04-typed-browser-api-client.md`,
      `specs/wip/04-typed-browser-api-client-breakdown.md`.
    - Change: Document verified transport/error/CSRF behavior and tests. Link
-     the Phase 00 schemas and state clearly which routes remain unimplemented
-     in the backend. Keep Phase 04 in `wip` until typed feature modules and
+     the relevant contract specs and state which browser capabilities remain
+     Phase 05 work. Keep Phase 04 in `wip` until typed feature modules and
      handoff evidence are complete.
    - Non-goal: No browser feature flows or backend implementation.
    - Focused verification: Documentation matches shipped code and test names;
@@ -76,6 +75,7 @@ focused checks, and handoff evidence are complete.
    - Rollback: Revert docs only; no data or migration effect.
 
 5. Add typed feature API modules for the Phase 00 browser contract — complete
+   historically (`0f4caa6`), narrowed by step 8
    - Scope: `src/api/auth.ts`, `src/api/account.ts`, `src/api/apiKeys.ts`,
      `src/api/clientContext.ts`, `src/types/`, and focused module tests.
    - Change: Declare request/response types from the Phase 00 contract and
@@ -96,10 +96,9 @@ focused checks, and handoff evidence are complete.
    - Scope: `src/lib/dev-proxy.ts`, `src/lib/dev-proxy.test.ts`,
      `docs/README.md`, `specs/done/03-routing-layouts-and-local-edge-shape.md`.
    - Change: Strip exactly one leading `/api` path segment before forwarding;
-     preserve `/v1`, query, method, body, and backend response. Keep frontend
-     SPA fallback separate. This corrects the completed Phase 03 proxy and is
-     required before browser modules can reach the current backend mount paths
-     locally.
+     preserve `/v1`, query, method, body, and response. Keep frontend SPA
+     fallback separate. This makes the local proxy follow the path mapping in
+     the contract specs; it is not evidence of a running service integration.
    - Non-goal: No CloudFront/API Gateway changes or backend routes.
    - Focused verification: ephemeral-upstream proxy test asserts
      `/api/v1/...` arrives as `/v1/...` with query intact and 429 JSON intact;
@@ -108,13 +107,14 @@ focused checks, and handoff evidence are complete.
    - Rollback: Revert proxy and handoff-doc changes; browser modules remain
      typed but local upstream integration stops matching Phase 00.
 
-7. Close Phase 04 with verified implementation evidence
-   - Scope: `docs/README.md`, `specs/wip/04-typed-browser-api-client.md`,
-     `specs/wip/04-typed-browser-api-client-breakdown.md`, and the phase
-     lifecycle move to `specs/done/`.
+7. Close Phase 04 with verified implementation evidence — complete
+   - Scope: `docs/README.md`, `specs/done/00-delivery-map.md`, both Phase 04
+     files, and the Phase 04 lifecycle move to `specs/done/`.
    - Change: Record final task commits, focused/full check outputs, exact
-     backend/edge gaps, and the Phase 00 contract link; move Phase 04 only after
-     all preceding tasks are committed and verified.
+     contract and unperformed integration gaps, links to the Managed Login
+     and retained Phase 00 specs, and update the delivery map's active-phase
+     status; move Phase 04 only after all preceding tasks are committed and
+     verified.
    - Non-goal: No claims about new routes being mounted, live backend
      integration, CloudFront, Cognito, or deployed behavior.
    - Focused verification: reconcile each breakdown task and documented check
@@ -135,7 +135,8 @@ focused checks, and handoff evidence are complete.
      contracts; remove the obsolete custom-credential error-code mappings.
      The Managed Login and Phase 05 specs direct implementation to reuse
      `/oauth/login` and `/oauth/callback`; keep logout/session/CSRF-bootstrap/
-     handoff contract work in Phase 05 rather than infer it from backend code.
+     handoff contract work in Phase 05. Do not use in-progress backend source
+     as the browser contract.
    - Non-goal: No React login flow, backend rewrite, Cognito SDK, or invented
      subscription/usage/admin endpoints.
    - Focused verification: `npm run test -- src/api/browser-modules.test.ts`
@@ -146,6 +147,7 @@ focused checks, and handoff evidence are complete.
      backend/Cognito checks before closing Phase 04.
    - Rollback: Revert this reconciliation commit; no data migration.
 
-The earlier step 7 closure is deferred until step 8 and its new target-contract
-review are complete. Earlier completion notes remain implementation history,
-not approval to ship the custom-auth methods.
+   - Delivery commits: `0434c8b` (transport), `8e2c319` (safe errors),
+     `02d0694` (CSRF adapter), `ae39893` (Phase 04 boundary docs), `0f4caa6`
+     (initial typed modules, narrowed by `a245246`), `afde58d` (proxy),
+     `44f1dbd` (Phase 03 evidence), and `e190601` (spec-grounded correction).

@@ -1,6 +1,6 @@
 # feednow-auth-ui current state
 
-Phases 01–03 are implemented and locally verified. This is a static React +
+Phases 01–04 are implemented and locally verified. This is a static React +
 TypeScript + Vite browser application. Phase 03 provides client-side routing,
 public and protected layouts, an injectable session-state seam, and a local
 same-origin API proxy. It does not discover a real session, implement
