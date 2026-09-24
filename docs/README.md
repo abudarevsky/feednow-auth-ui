@@ -44,7 +44,7 @@ Avatar, Tabs, Dialog, AlertDialog, Sheet, Table, Tooltip, Skeleton, and Sonner.
 | Auth card | `src/components/auth-card.tsx` | Centers a content-sized `max-w-md` Card with title, optional description, content, and footer slots. It has one h1 and no fixed height; the card fills narrow viewports. |
 | Account shell and nav | `src/components/account-shell.tsx`, `src/components/account-nav.tsx` | Shows a compact sidebar at desktop widths and a Sheet navigation panel on mobile. A semantic nav contains button items; the active item exposes `aria-current="page"`. Radix traps focus in the Sheet and restores it to the trigger when closed. |
 | Confirm dialog | `src/components/confirm-dialog.tsx` | Uses AlertDialog for destructive confirmation. Cancel receives initial focus. Only explicit confirmation calls `onConfirm`; Escape and backdrop dismissal close without calling it, and focus returns to the trigger. |
-| State blocks | `src/components/state-blocks.tsx` | LoadingBlock announces “Loading…” with `role="status"` and decorative Skeletons; EmptyState pairs an icon with visible text; ErrorState renders only its caller-supplied safe message with `role="alert"`. |
+| State blocks | `src/components/state-blocks.tsx` | LoadingBlock shows visible loading text with `role="status"` and decorative Skeletons; EmptyState pairs an icon with visible text; ErrorState renders only its caller-supplied safe message with `role="alert"`. |
 
 ## Routing and session seam
 
@@ -105,11 +105,12 @@ npm run preview
 
 The Phase 03 handoff sequence `npm ci`, `npm run check`, and
 `npm run test:e2e` passed. Lint and strict TypeScript passed; 18 Vitest files
-and 93 tests passed; the production build completed. Playwright passed all 42
+and 93 tests passed; the production build completed. Playwright passed all 45
 Chromium tests across the configured viewports, including direct route loads,
 unknown-route handling, in-app navigation, protected-route loading, responsive
-auth-card checks, and visible keyboard focus. Three auth-card screenshot
-baselines cover the current `/login` route at the configured viewports.
+auth-card checks, and visible keyboard focus. Three auth-card and three
+protected-loading screenshot baselines cover the current routes at the
+configured viewports.
 
 ## Responsive and accessibility evidence
 
@@ -123,14 +124,17 @@ Chromium projects:
 | `mobile-375` | 375 × 812 |
 
 `e2e/routing.spec.ts` verifies every public route and all protected paths by
-direct navigation, the default protected loading state, in-app navigation,
-unknown-route behavior, and horizontal overflow at the configured viewports.
+direct navigation, the visible default protected loading state, in-app
+navigation, unknown-route behavior, and horizontal overflow at the configured
+viewports. Protected loading and unauthenticated states use `AuthCard`, so
+they remain understandable while Phase 06 session discovery is not yet wired.
 `e2e/design-system.spec.ts` checks the routed auth card, visible keyboard focus,
 and its visual baseline. Account-shell navigation and mobile Sheet focus
 containment/restoration remain covered by `src/components/account-shell.test.tsx`.
-Three committed `toHaveScreenshot` baselines cover the routed AuthCard at these
-viewports. The earlier gallery and account-shell screenshot baselines were
-removed when the gallery ceased to be an application route.
+Three committed `toHaveScreenshot` baselines cover the routed AuthCard and
+three cover the protected loading card at these viewports. The earlier gallery
+and account-shell screenshot baselines were removed when the gallery ceased to
+be an application route.
 
 Baselines were generated on macOS 26.6.2 with Playwright 1.63.0 and its pinned
 Chromium 153.0.8010.12 build (Playwright Chromium v1243). Regenerate only after

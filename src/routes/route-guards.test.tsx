@@ -20,13 +20,15 @@ function renderRoute(status: 'loading' | 'unauthenticated' | 'authenticated', pr
 describe('protected route session outcomes', () => {
   it('shows a stable loading state while session state is unresolved', () => {
     renderRoute('loading')
-    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible()
+    expect(screen.getByRole('status', { name: 'Loading account page' })).toBeVisible()
+    expect(screen.getByText('Loading account page…')).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Account page' })).not.toBeInTheDocument()
   })
 
   it('shows a safe sign-in prompt for an unauthenticated session', () => {
     renderRoute('unauthenticated')
-    expect(screen.getByRole('heading', { name: 'Sign in required' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Sign in required' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/login')
   })
 

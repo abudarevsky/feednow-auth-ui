@@ -54,3 +54,17 @@ Record route table, proxy configuration, and direct-navigation test evidence.
 - Build-step commits: plan `93eba2e`; routes `989237d`; session guard
   `799e510`; responsive layouts `cfd8f9a`; local proxy `8763a4a`; browser
   evidence `80c3d63`.
+
+## Follow-up verification — 2026-09-24
+
+- User review found the protected loading state looked empty. The initial
+  skeleton bars had only screen-reader text and a very subtle accent fill.
+- Loading and unauthenticated guard states now render inside `AuthCard`; the
+  loading state includes visible “Loading account page…” text and keeps its
+  accessible status role. No session lookup was added.
+- Focused verification passed: `npm run test --
+  src/routes/route-guards.test.tsx src/components/state-blocks.test.tsx` (2
+  files / 7 tests).
+- Playwright passed 45 tests and now captures the protected loading card at all
+  three viewports. Full `npm run check` and regular `npm run test:e2e` are
+  repeated after this correction.

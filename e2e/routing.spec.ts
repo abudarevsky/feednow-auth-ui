@@ -23,10 +23,22 @@ for (const [path, heading] of publicRoutes) {
 for (const path of accountRoutes) {
   test(`direct protected route ${path} shows deterministic session loading`, async ({ page }) => {
     await page.goto(path)
-    await expect(page.getByRole('status', { name: 'Loading' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible()
+    await expect(page.getByRole('status', { name: 'Loading account page' })).toBeVisible()
+    await expect(page.getByText('Loading account page…')).toBeVisible()
     expect(await page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')).toBe(true)
   })
 }
+
+test('protected-route loading state has a visible card and message', async ({ page }) => {
+  await page.goto('/account')
+  await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible()
+  await expect(page.getByText('Loading account page…')).toBeVisible()
+  await expect(page.locator('[data-slot="card"]')).toHaveScreenshot({
+    animations: 'disabled',
+    maxDiffPixelRatio: 0.01,
+  })
+})
 
 test('entry navigation stays client-side and unknown paths render a not-found page', async ({ page }) => {
   await page.goto('/')

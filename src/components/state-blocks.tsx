@@ -3,9 +3,10 @@ import { CircleHelp } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/skeleton'
 
-function LoadingBlock() {
+function LoadingBlock({ label = 'Loading' }: { label?: string }) {
   return (
-    <div role="status" className="grid gap-3" aria-label="Loading">
+    <div role="status" className="grid gap-3" aria-label={label}>
+      <span className="font-medium text-foreground">{label}…</span>
       <span className="sr-only">Loading…</span>
       <Skeleton aria-hidden="true" className="h-5 w-2/3" />
       <Skeleton aria-hidden="true" className="h-4 w-full" />
