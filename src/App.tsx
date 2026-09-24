@@ -1,11 +1,11 @@
 import { Toaster } from '@/components/ui/sonner'
-import { Home } from '@/routes/home'
+import { RouterProvider } from 'react-router-dom'
+import { router } from '@/routes/router'
 
 export default function App() {
   return (
     <>
-      <Home />
-      {/* One global toast outlet for the whole app (Phase 02, Sonner). */}
+      <RouterProvider router={router} />
       <Toaster />
     </>
   )

@@ -3,13 +3,12 @@ import { describe, expect, it } from 'vitest'
 
 import App from '@/App'
 
-describe('Phase 02 primitives gallery', () => {
-  it('renders the gallery heading and representative primitives', () => {
+describe('Phase 03 route entry point', () => {
+  it('renders the entry heading and canonical routes', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Phase 02 design system' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Account access' })).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Account' })).toBeInTheDocument()
-    expect(screen.getByText('Could not load account details.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'FeedNow account' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'API keys' })).toHaveAttribute('href', '/account/api-keys')
   })
 })
 
