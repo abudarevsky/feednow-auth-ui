@@ -40,8 +40,15 @@ Record route table, proxy configuration, and direct-navigation test evidence.
   `authenticated`). `App` defaults to loading. No session discovery or auth
   operation is implemented in this phase.
 - Vite proxies `/api/*` to `http://127.0.0.1:8000`, overridable with
-  `FEEDNOW_AUTH_ORIGIN`. The integration test verified exact path forwarding
-  and preservation of a mock 429 JSON response; `/login` remained SPA HTML.
+  `FEEDNOW_AUTH_ORIGIN`. Phase 00 later fixed the mapping: Vite strips only the
+  leading `/api`, so `/api/v1/...` reaches the service as `/v1/...`. The
+  corrective proxy test verifies rewritten path/query preservation, a mock
+  429 JSON response, and `/login` remaining SPA HTML.
+- Corrective verification: `npm run test -- src/lib/dev-proxy.test.ts` passed
+  (1 test); `npm run check` passed (22 Vitest files / 131 tests, lint,
+  typecheck, and production build). The checks used loopback access for the
+  ephemeral local proxy server. This still does not prove a running backend or
+  deployed CloudFront rewrite.
 - `npm ci` passed (381 packages installed, 0 vulnerabilities).
 - `npm run check` passed: lint, strict TypeScript, 18 Vitest files / 93 tests,
   and production build.
@@ -51,6 +58,8 @@ Record route table, proxy configuration, and direct-navigation test evidence.
   keyboard focus, and auth-card screenshots.
 - No running backend, manual screen-reader session, physical tablet test,
   production CloudFront behavior, or deployed smoke test was exercised.
+- Phase 00 proxy correction is committed as `afde58d` (`fix(ui): align local
+  API proxy paths`).
 - Build-step commits: plan `93eba2e`; routes `989237d`; session guard
   `799e510`; responsive layouts `cfd8f9a`; local proxy `8763a4a`; browser
   evidence `80c3d63`.
