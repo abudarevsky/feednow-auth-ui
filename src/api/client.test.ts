@@ -94,4 +94,50 @@ describe('typed API transport', () => {
     await expect(createApiClient({ fetchImpl }).request('/api/example'))
       .rejects.toBe(abortError)
   })
+
+  it.each(['POST', 'PUT', 'PATCH', 'DELETE'] as const)(
+    'copies the configured CSRF cookie into the header for %s only', async (method) => {
+      const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{"ok":true}'))
+      const cookieReader = vi.fn(() => 'other=x; ui-csrf=opaque%20token')
+      const client = createApiClient({
+        fetchImpl,
+        csrf: { cookieName: 'ui-csrf', headerName: 'X-Test-CSRF', cookieReader },
+      })
+
+      await client.request('/api/write', { method, body: {} })
+
+      expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('X-Test-CSRF'))
+        .toBe('opaque token')
+      expect(cookieReader).toHaveBeenCalledOnce()
+    },
+  )
+
+  it.each(['GET', 'HEAD'] as const)('does not read or send CSRF for %s', async (method) => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }))
+    const cookieReader = vi.fn(() => 'ui-csrf=opaque-token')
+    const client = createApiClient({
+      fetchImpl,
+      csrf: { cookieName: 'ui-csrf', headerName: 'X-Test-CSRF', cookieReader },
+    })
+
+    await client.request('/api/read', { method })
+
+    expect(cookieReader).not.toHaveBeenCalled()
+    expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).has('X-Test-CSRF')).toBe(false)
+  })
+
+  it('blocks configured unsafe requests when the CSRF cookie is missing', async () => {
+    const fetchImpl = vi.fn<typeof fetch>()
+    const client = createApiClient({
+      fetchImpl,
+      csrf: { cookieName: 'ui-csrf', headerName: 'X-Test-CSRF', cookieReader: () => '' },
+    })
+
+    await expect(client.request('/api/write', { method: 'POST', body: {} }))
+      .rejects.toMatchObject({
+        kind: 'csrf',
+        message: 'Your request could not be verified. Reload the page and try again.',
+      })
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
 })

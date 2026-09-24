@@ -20,6 +20,7 @@ type ApiErrorKind =
   | 'server'
   | 'network'
   | 'malformed_response'
+  | 'csrf'
   | 'request'
 
 export type { ApiErrorKind, BackendErrorEnvelope, BackendFieldError }

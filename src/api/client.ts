@@ -1,5 +1,7 @@
 import { asApiPath, type ApiPath } from '@/api/path'
+import { isUnsafeMethod, readCsrfToken, type CsrfOptions } from '@/api/csrf'
 import {
+  createCsrfError,
   createMalformedResponseError,
   createNetworkError,
   isAbortError,
@@ -24,19 +26,30 @@ type ApiResponse<T> = {
 
 type ApiClientOptions = {
   fetchImpl?: typeof fetch
+  csrf?: CsrfOptions
 }
 
 type ApiClient = {
   request<TResponse>(path: ApiPath | string, options?: ApiRequestOptions): Promise<ApiResponse<TResponse>>
 }
 
-function createApiClient({ fetchImpl = fetch }: ApiClientOptions = {}): ApiClient {
+function createApiClient({ fetchImpl = fetch, csrf }: ApiClientOptions = {}): ApiClient {
   return {
     async request<TResponse>(path: ApiPath | string, options: ApiRequestOptions = {}) {
       const safePath = asApiPath(path)
       const method = options.method ?? 'GET'
       const headers = new Headers(options.headers)
       headers.set('Accept', 'application/json')
+
+      if (csrf && isUnsafeMethod(method)) {
+        const token = readCsrfToken(csrf)
+        if (!token) throw createCsrfError()
+        try {
+          headers.set(csrf.headerName, token)
+        } catch {
+          throw createCsrfError()
+        }
+      }
 
       let body: string | undefined
       if (options.body !== undefined) {

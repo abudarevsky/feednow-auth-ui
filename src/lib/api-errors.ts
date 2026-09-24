@@ -10,6 +10,7 @@ const SAFE_MESSAGES: Record<ApiErrorKind, string> = {
   server: 'Something went wrong. Please try again.',
   network: 'We could not connect. Check your connection and try again.',
   malformed_response: 'We could not process the server response. Please try again.',
+  csrf: 'Your request could not be verified. Reload the page and try again.',
   request: 'We could not complete your request. Please try again.',
 }
 
@@ -102,6 +103,10 @@ function createMalformedResponseError(): ApiRequestError {
   return new ApiRequestError({ kind: 'malformed_response' })
 }
 
+function createCsrfError(): ApiRequestError {
+  return new ApiRequestError({ kind: 'csrf' })
+}
+
 function isAbortError(error: unknown): boolean {
   return isRecord(error) && error.name === 'AbortError'
 }
@@ -109,6 +114,7 @@ function isAbortError(error: unknown): boolean {
 export {
   ApiRequestError,
   createMalformedResponseError,
+  createCsrfError,
   createNetworkError,
   isAbortError,
   normalizeApiError,
