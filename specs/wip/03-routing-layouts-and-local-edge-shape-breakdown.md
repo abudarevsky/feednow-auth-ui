@@ -77,9 +77,10 @@ next. The app must remain runnable after each step.
    - Scope: `e2e/routing.spec.ts`, `playwright.config.ts` only if required.
    - Change: Against the built artifact, navigate directly to every public
      route, verify account paths show the deterministic default loading state,
-     check unknown-route handling and in-app account navigation where an
-     authenticated provider is injected in a test harness, and assert no
-     horizontal overflow at the existing 1280, 768, and 375 pixel projects.
+     check unknown-route handling and in-app navigation from the entry page,
+     and assert no horizontal overflow at the existing 1280, 768, and 375 pixel
+     projects. Account navigation links and authenticated rendering are covered
+     by the route-layout and injected-session component tests.
    - Non-goal: No live backend, Cognito, deployed edge, or real session claims.
    - Focused verification: `npm run test:e2e`.
    - Handoff checks: `npm run check && npm run test:e2e`.
@@ -97,4 +98,3 @@ next. The app must remain runnable after each step.
      phase handoff evidence matches recorded command output.
    - Handoff checks: `npm ci && npm run check && npm run test:e2e`.
    - Rollback: Revert documentation and lifecycle move; no code/data effect.
-
