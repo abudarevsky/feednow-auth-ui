@@ -29,3 +29,19 @@ Live auth/account calls or a product-specific marketing design.
 ## Handoff
 
 Document primitives, accessible behavior, and viewport evidence.
+
+## Implementation handoff — 2026-09-24
+
+- `npm ci` completed successfully.
+- `npm run check` passed: lint, strict TypeScript, 14 Vitest files / 84 tests,
+  and production build.
+- `npm run test:e2e` passed: 18 Chromium tests across 1280×800, 768×1024, and
+  375×812 viewport projects. Six screenshot baselines are committed and pass
+  comparison in the suite.
+- Baselines were generated on macOS 26.6.2 with Playwright 1.63.0 and Chromium
+  153.0.8010.12 (Playwright Chromium v1243). Environment and viewport details
+  are recorded in the task-09 commit message.
+- No manual screen-reader session, physical tablet-device test, deployed edge
+  check, backend call, or live authentication flow was performed.
+- Current-state behavior and the baseline refresh procedure are documented in
+  `docs/README.md`.
