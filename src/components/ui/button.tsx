@@ -1,34 +1,22 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 import { Slot } from "radix-ui"
 
-import { cn } from "@/lib/utils"
-
-/*
- * shadcn/ui Button (new-york style), generated via the shadcn CLI against
- * components.json and checked in verbatim except: the `cn` import uses the
- * repo alias @/lib/utils; `dark:` classes are removed because every palette
- * flip is owned by the semantic variables and the class-based `.dark`
- * overrides in src/index.css (an OS-driven `dark:` swap would silently
- * change contrast-verified pairs the app never chose); and the destructive
- * variant uses `text-destructive-foreground` instead of the generated
- * `text-white` so its label follows the theme (white in light mode —
- * identical to before — and dark slate-900 on red-400 in dark mode). The
- * `default` variant is the FeedNow primary button: --primary-foreground on
- * --primary, the pair asserted >=4.5:1 in src/test/theme-contrast.test.ts.
- */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+        outline:
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -72,7 +60,4 @@ function Button({
   )
 }
 
-// The generated shadcn API exports the component plus its variant helper;
-// the rule is suppressed narrowly instead of disabling it repo-wide.
-// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }
