@@ -1,3 +1,5 @@
+import type { ApiClient, ApiResponse } from '@/api/client'
+
 type CsrfOptions = {
   cookieName: string
   headerName: string
@@ -47,5 +49,13 @@ function readCsrfToken(options: CsrfOptions): string | undefined {
   }
 }
 
-export { FEEDNOW_CSRF_OPTIONS, isUnsafeMethod, readCookie, readCsrfToken }
+function createCsrfApi(client: ApiClient) {
+  return {
+    bootstrap(signal?: AbortSignal): Promise<ApiResponse<void>> {
+      return client.request('/api/v1/csrf', { signal })
+    },
+  }
+}
+
+export { createCsrfApi, FEEDNOW_CSRF_OPTIONS, isUnsafeMethod, readCookie, readCsrfToken }
 export type { CsrfOptions }

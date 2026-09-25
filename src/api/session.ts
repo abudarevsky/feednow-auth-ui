@@ -10,6 +10,9 @@ function createSessionApi(client: ApiClient) {
       const query = new URLSearchParams({ client_id: clientId })
       return client.request(`/api/v1/auth/context?${query.toString()}`, { signal })
     },
+    logout(signal?: AbortSignal): Promise<ApiResponse<void>> {
+      return client.request('/api/v1/logout', { method: 'POST', body: {}, signal })
+    },
   }
 }
 

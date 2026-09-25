@@ -74,32 +74,33 @@ returns typed response bodies. `src/lib/api-errors.ts` maps HTTP status and
 recognized service error codes to fixed UI-safe messages. It does not expose
 backend messages, field messages, raw response bodies, or exception text.
 
-`src/api/csrf.ts` copies a token from a readable cookie to a header for unsafe
-methods. `createFeedNowApiClient()` uses the proposed names `feednow_csrf` and
-`X-CSRF-Token`. The Phase 00 contract proposes `/api/v1/csrf`; Managed Login
-Phase 05 owns final session/CSRF integration evidence. Missing configured
-tokens block unsafe requests locally. The lower-level
-`createApiClient()` remains configurable for isolated tests.
+`src/api/csrf.ts` provides `createCsrfApi().bootstrap()` for
+`GET /api/v1/csrf` and copies a readable-cookie token into a header for unsafe
+methods. `createFeedNowApiClient()` uses the retained names `feednow_csrf` and
+`X-CSRF-Token`. Missing configured tokens block unsafe requests locally. The
+lower-level `createApiClient()` remains configurable for isolated tests.
 
 The retained typed feature modules are `src/api/account.ts` for the profile
 contract, `src/api/apiKeys.ts` for organization API-key contracts, and
-`src/api/session.ts` for the `GET /api/v1/session` and
-`GET /api/v1/auth/context` browser contracts. Their response types are in
-`src/types/browser-api.ts`. The methods are not wired to screens.
+`src/api/session.ts` for `GET /api/v1/session`,
+`GET /api/v1/auth/context`, and `POST /api/v1/logout`. The registered handoff
+request is in `src/api/handoff.ts`. Request/response types are in
+`src/types/browser-api.ts`. These methods are not wired to screens.
 
-The session and client-context readers use the retained contract specification
-and are covered by mocked transport tests. This verifies URL encoding and
-response typing only; it does not prove those backend routes are mounted or
-that the session cookie authorizes `/v1` requests. Phase 05 service integration
-must establish that evidence before Phase 06 uses session discovery in routed
-UI.
+The browser-session, client-context, CSRF, logout, and handoff methods use the
+retained contract specification and are covered by mocked transport tests.
+These tests verify URL encoding, response typing, empty 204 responses, and
+CSRF-header behavior only; they do not prove those backend routes are mounted
+or that the session cookie authorizes `/v1` requests. Phase 05 service
+integration must establish that evidence before Phase 06 uses session
+discovery in routed UI.
 
 The custom credential, challenge, registration, verification, recovery,
-federation, logout, handoff, profile-mutation, and security methods remain
-absent. The Managed Login target and Phase 05 spec keep passwords, OAuth,
+federation, profile-mutation, and security methods remain absent. The Managed
+Login target and Phase 05 spec keep passwords, OAuth,
 sessions, cookies, redirects, logout, CSRF enforcement, and Vispector
-authorization backend-owned. Phase 05 adds typed request consumers only for
-the retained browser session and trusted client-context response contracts;
+authorization backend-owned. Phase 05 adds typed request consumers for the
+retained session, context, CSRF bootstrap, logout, and handoff contracts;
 local mocked transport tests do not prove service or deployed integration.
 The Phase 00 contract remains authoritative only for details that do not
 conflict with Managed Login.

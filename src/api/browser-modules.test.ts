@@ -4,6 +4,8 @@ import { createAccountApi } from '@/api/account'
 import { createApiClient } from '@/api/client'
 import { createApiKeysApi } from '@/api/apiKeys'
 import { createSessionApi } from '@/api/session'
+import { createCsrfApi } from '@/api/csrf'
+import { createHandoffApi } from '@/api/handoff'
 
 function makeClient() {
   const fetchImpl = vi.fn<typeof fetch>().mockImplementation(async () => new Response('{"status":"ok"}'))
@@ -59,6 +61,47 @@ describe('typed browser API modules', () => {
     expect(current.data).toEqual({ status: 'unauthenticated', user: null })
     expect(fetchImpl.mock.calls[0]?.[0]).toBe('/api/v1/session')
     expect(fetchImpl.mock.calls[0]?.[1]?.credentials).toBe('same-origin')
+  })
+
+  it('bootstraps CSRF and sends only backend-approved logout and handoff requests', async () => {
+    const cookieReader = vi.fn(() => 'feednow_csrf=opaque-csrf')
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response('{"redirect_url":"https://vispector.feednow.io/auth/callback?result=opaque"}'))
+      .mockResolvedValueOnce(new Response('{"redirect_url":"https://vispector.feednow.io/auth/callback?result=opaque-2"}'))
+    const client = createApiClient({
+      fetchImpl,
+      csrf: { cookieName: 'feednow_csrf', headerName: 'X-CSRF-Token', cookieReader },
+    })
+    const csrf = createCsrfApi(client)
+    const session = createSessionApi(client)
+    const handoff = createHandoffApi(client)
+
+    const bootstrap = await csrf.bootstrap()
+    const logout = await session.logout()
+    const result = await handoff.start({ client_id: 'vispector', state: 'opaque-state' })
+    const accountOnlyResult = await handoff.start({ client_id: 'vispector', state: null })
+
+    expect(bootstrap.status).toBe(204)
+    expect(bootstrap.data).toBeUndefined()
+    expect(logout.status).toBe(204)
+    expect(logout.data).toBeUndefined()
+    expect(result.data).toEqual({ redirect_url: 'https://vispector.feednow.io/auth/callback?result=opaque' })
+    expect(accountOnlyResult.data).toEqual({ redirect_url: 'https://vispector.feednow.io/auth/callback?result=opaque-2' })
+    expect(fetchImpl.mock.calls.map(([path]) => path)).toEqual([
+      '/api/v1/csrf',
+      '/api/v1/logout',
+      '/api/v1/auth/handoff',
+      '/api/v1/auth/handoff',
+    ])
+    expect(fetchImpl.mock.calls.map(([, options]) => options?.method ?? 'GET')).toEqual(['GET', 'POST', 'POST', 'POST'])
+    expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).has('X-CSRF-Token')).toBe(false)
+    expect(fetchImpl.mock.calls.slice(1).map(([, options]) => new Headers(options?.headers).get('X-CSRF-Token')))
+      .toEqual(['opaque-csrf', 'opaque-csrf', 'opaque-csrf'])
+    expect(fetchImpl.mock.calls[1]?.[1]?.body).toBe('{}')
+    expect(fetchImpl.mock.calls[2]?.[1]?.body).toBe('{"client_id":"vispector","state":"opaque-state"}')
+    expect(fetchImpl.mock.calls[3]?.[1]?.body).toBe('{"client_id":"vispector","state":null}')
   })
 
   it('uses the retained organization API-key contract paths and payloads', async () => {

@@ -42,7 +42,7 @@ later item until the current item has its focused evidence and commit.
 - **Non-goal:** no session provider, protected-route behavior, trusted-client
   registration, or claim that mocked responses prove backend behavior.
 
-### 2. Add typed CSRF-bootstrap, logout, and handoff consumers
+### 2. Add typed CSRF-bootstrap, logout, and handoff consumers — complete
 
 - **Scope:** UI `src/api/`, `src/types/browser-api.ts`, and focused
   API-module tests.
@@ -52,12 +52,13 @@ later item until the current item has its focused evidence and commit.
   methods, and return the backend-provided one-time `redirect_url` without
   constructing or approving it in the browser. Preserve the generic
   transport's safe error mapping and cancellation.
-- **Focused verification:** assert exact methods, paths, JSON bodies, 204
-  handling, CSRF bootstrap behavior, token-header redaction, and opaque
-  handoff URL pass-through.
-- **Full handoff checks:** `npm run check`; `npm run test:e2e` only if this
-  change adds or changes a browser flow (route/UI integration is a later
-  step).
+- **Focused verification:** `npm run test -- src/api/browser-modules.test.ts`
+  passed (6 tests), asserting exact methods, paths, JSON bodies, 204 handling,
+  CSRF header use only on unsafe requests, nullable handoff state, and opaque
+  backend handoff URL pass-through.
+- **Full handoff checks:** `npm run check` passed (lint, typecheck, 134 tests
+  across 22 files, and production build). E2E was not run because no browser
+  flow or route changed. `git diff --check` passed.
 - **Rollback:** revert the new clients/types/tests; no data migration.
 - **Non-goal:** no UI logout/handoff flows, automatic mutation retries,
   redirect allowlist, or client-side session/capability authority.

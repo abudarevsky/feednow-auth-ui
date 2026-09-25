@@ -17,6 +17,15 @@ type AuthClientContext = {
   registration_enabled: boolean
 }
 
+type HandoffRequest = {
+  client_id: string
+  state: string | null
+}
+
+type HandoffResponse = {
+  redirect_url: string
+}
+
 type MeResponse = UserSummary & {
   status: UserStatus
   created_at: string
@@ -59,6 +68,8 @@ export type {
   ApiKeyStatus,
   AuthClientContext,
   BrowserSessionResponse,
+  HandoffRequest,
+  HandoffResponse,
   MeResponse,
   Page,
   UserStatus,
