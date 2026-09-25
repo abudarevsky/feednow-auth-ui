@@ -63,7 +63,7 @@ later item until the current item has its focused evidence and commit.
 - **Non-goal:** no UI logout/handoff flows, automatic mutation retries,
   redirect allowlist, or client-side session/capability authority.
 
-### 3. Pin OAuth path rewrite and API-failure separation
+### 3. Pin OAuth path rewrite and API-failure separation — complete
 
 - **Scope:** UI `src/lib/dev-proxy.test.ts`; modify
   `src/lib/dev-proxy.ts` only if the focused test proves the existing behavior
@@ -73,11 +73,12 @@ later item until the current item has its focused evidence and commit.
   backend error status/content unchanged. Confirm frontend SPA fallback is
   confined to browser routes. Never normalize Cognito/backend errors into an
   HTML fallback.
-- **Focused verification:** `npm run test -- src/lib/dev-proxy.test.ts` with
-  an ephemeral upstream fixture covering both OAuth paths and a non-2xx JSON
-  response.
-- **Full handoff checks:** `npm run check`; `npm run test:e2e` if proxy
-  behavior or visible routing is changed.
+- **Focused verification:** `npm run test -- src/lib/dev-proxy.test.ts`
+  passed (1 test) with an ephemeral upstream; it covers both OAuth paths,
+  401/429 JSON preservation, and method/body/cookie/header forwarding.
+- **Full handoff checks:** `npm run check` passed (lint, typecheck, 134 tests
+  across 22 files, and production build). E2E was not run because the proxy
+  source and visible routing did not change. `git diff --check` passed.
 - **Rollback:** revert the test and any proxy correction; no runtime data
   effect.
 - **Non-goal:** no CloudFront changes or claim of deployed edge behavior.

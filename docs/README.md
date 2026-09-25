@@ -110,12 +110,14 @@ conflict with Managed Login.
 `vite.config.ts` proxies relative `/api/*` requests to
 `http://127.0.0.1:8000` by default, matching the local `feednow-auth` server.
 Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The proxy strips
-exactly the leading `/api` before forwarding, preserving the versioned `/v1`
-path, query, and backend response status, content type, and body. It does not
-rewrite frontend routes; Vite serves the SPA shell for routes such as `/login`.
-`src/lib/dev-proxy.test.ts` verifies both behaviors against ephemeral local
-servers, including a JSON 429 API response that remains JSON rather than
-becoming `index.html`.
+exactly one leading `/api` before forwarding, preserving `/v1/*` and `/oauth/*`
+paths, query, method, body, cookies, required headers, and backend response
+status, content type, and body. It does not rewrite frontend routes; Vite
+serves the SPA shell for routes such as `/login`. `src/lib/dev-proxy.test.ts`
+verifies these behaviors against an ephemeral upstream, including
+`/api/oauth/login`, `/api/oauth/callback`, unchanged JSON 401/429 responses,
+and method/body/cookie/header forwarding. This remains local proxy evidence,
+not deployed CloudFront behavior.
 
 ## Local development and checks
 
@@ -127,7 +129,7 @@ npm ci
 npm run dev
 ```
 
-Vite serves the app on port 3000. Future browser calls must remain relative
+Vite serves the app on port 3000. Browser API calls must remain relative
 `/api/...` requests through the typed transport and feature modules. No current
 screen makes backend calls. The static production output is `dist/`, intended
 for private S3 hosting behind CloudFront in the later hosting phases.
