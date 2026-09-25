@@ -5,15 +5,15 @@
 The [target specification](../draft/feednow-auth-ui-specification.md) replaces
 the custom-auth plan. Completed Phase 00–03 files record prior decisions and
 verified implementation; this revision supersedes their future auth paths
-without rewriting their history. Phase 04 is complete; Phase 05 remains the
-smallest planned phase and stays in `specs/draft/` until accepted. Current
-behavior remains in [docs/README.md](../../docs/README.md).
+without rewriting their history. Phase 04 is complete; Phase 05 is the active
+phase in `specs/wip/` following the user's 2026-09-25 implementation
+instruction. Current behavior remains in [docs/README.md](../../docs/README.md).
 
 | Phase | Reviewable unit | Depends on |
 | --- | --- | --- |
 | 01–03 | Scaffold, UI primitives, router/edge foundation (completed) | Historical |
 | 04 | Reconcile typed browser client with Managed Login boundary (completed) | 00–03 |
-| 05 | Mount/verify backend OAuth, browser session, logout, registered handoff, and account contracts | 04 contract inventory; existing backend OAuth work |
+| 05 | Mount/verify backend OAuth, browser session, logout, registered handoff, and account contracts | 04 contract inventory; existing backend OAuth work (deployed proof remains pending and must be reported separately) |
 | 06 | Session discovery and protected route redirect with destination restore | 03–05 |
 | 07 | Managed Login entry and Vispector handoff | 05–06 |
 | 08 | Legacy auth route migration and Cognito self-service journey verification | 05–07 |
