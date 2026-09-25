@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createAccountApi } from '@/api/account'
 import { createApiClient } from '@/api/client'
 import { createApiKeysApi } from '@/api/apiKeys'
+import { createSessionApi } from '@/api/session'
 
 function makeClient() {
   const fetchImpl = vi.fn<typeof fetch>().mockImplementation(async () => new Response('{"status":"ok"}'))
@@ -10,7 +11,7 @@ function makeClient() {
 }
 
 describe('typed browser API modules', () => {
-  it('uses only the source-backed current-user path for account reads', async () => {
+  it('uses the retained profile contract path for account reads', async () => {
     const { client, fetchImpl } = makeClient()
     const account = createAccountApi(client)
 
@@ -19,7 +20,48 @@ describe('typed browser API modules', () => {
     expect(fetchImpl.mock.calls.map(([path]) => path)).toEqual(['/api/v1/me'])
   })
 
-  it('uses source-backed organization API-key paths and payloads', async () => {
+  it('reads backend session and registered client context through typed same-origin paths', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (input === '/api/v1/session') {
+        return new Response('{"status":"authenticated","user":{"id":"usr_1","display_name":"Ada","email":"ada@example.test"}}')
+      }
+
+      return new Response('{"client_id":"vispector /?","display_name":"Vispector","logo_url":null,"registration_enabled":true}')
+    })
+    const session = createSessionApi(createApiClient({ fetchImpl }))
+
+    const current = await session.getCurrent()
+    const context = await session.getClientContext('vispector /?')
+
+    expect(current.data).toEqual({
+      status: 'authenticated',
+      user: { id: 'usr_1', display_name: 'Ada', email: 'ada@example.test' },
+    })
+    expect(context.data).toEqual({
+      client_id: 'vispector /?',
+      display_name: 'Vispector',
+      logo_url: null,
+      registration_enabled: true,
+    })
+    expect(fetchImpl.mock.calls.map(([path]) => path)).toEqual([
+      '/api/v1/session',
+      '/api/v1/auth/context?client_id=vispector+%2F%3F',
+    ])
+    expect(fetchImpl.mock.calls.map(([, options]) => options?.method ?? 'GET')).toEqual(['GET', 'GET'])
+  })
+
+  it('models an unauthenticated backend session without inferring browser state', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{"status":"unauthenticated","user":null}'))
+    const session = createSessionApi(createApiClient({ fetchImpl }))
+
+    const current = await session.getCurrent()
+
+    expect(current.data).toEqual({ status: 'unauthenticated', user: null })
+    expect(fetchImpl.mock.calls[0]?.[0]).toBe('/api/v1/session')
+    expect(fetchImpl.mock.calls[0]?.[1]?.credentials).toBe('same-origin')
+  })
+
+  it('uses the retained organization API-key contract paths and payloads', async () => {
     const { client, fetchImpl } = makeClient()
     const account = createAccountApi(client)
     const keys = createApiKeysApi(client)

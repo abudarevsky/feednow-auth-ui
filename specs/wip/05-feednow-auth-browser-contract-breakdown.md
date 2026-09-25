@@ -20,7 +20,7 @@ later item until the current item has its focused evidence and commit.
 
 ## Build steps
 
-### 1. Add typed session and trusted client-context consumers
+### 1. Add typed session and trusted client-context consumers — complete
 
 - **Scope:** UI `src/api/session.ts`, `src/types/browser-api.ts`,
   `src/api/browser-modules.test.ts`, and a focused API-module test if needed.
@@ -31,10 +31,12 @@ later item until the current item has its focused evidence and commit.
   navigation decision from its value. This implements browser request
   contracts only and does not claim that the service routes are mounted.
 - **Focused verification:** `npm run test -- src/api/browser-modules.test.ts`
-  (or the focused new test) checks exact paths/query encoding, methods, and
-  response typing fixtures.
-- **Full handoff checks:** `npm run check`; no E2E because no visible route or
-  user flow changes.
+  passed (5 tests), covering both session variants, exact paths/query
+  encoding, methods, same-origin credentials, and typed response fixtures.
+- **Full handoff checks:** `npm run check` passed (lint, typecheck, 133 tests
+  across 22 files, and production build). E2E was not run because no visible
+  route or user flow changed. The proxy test required local loopback
+  permission. `git diff --check` passed.
 - **Rollback:** revert the added API module, types, and tests; no storage or
   migration effect.
 - **Non-goal:** no session provider, protected-route behavior, trusted-client

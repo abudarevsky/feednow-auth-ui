@@ -6,6 +6,17 @@ type UserSummary = {
   email: string
 }
 
+type BrowserSessionResponse =
+  | { status: 'unauthenticated'; user: null }
+  | { status: 'authenticated'; user: UserSummary }
+
+type AuthClientContext = {
+  client_id: string
+  display_name: string
+  logo_url: string | null
+  registration_enabled: boolean
+}
+
 type MeResponse = UserSummary & {
   status: UserStatus
   created_at: string
@@ -46,6 +57,8 @@ export type {
   ApiKeyEnvironment,
   ApiKeySummary,
   ApiKeyStatus,
+  AuthClientContext,
+  BrowserSessionResponse,
   MeResponse,
   Page,
   UserStatus,

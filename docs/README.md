@@ -81,22 +81,28 @@ Phase 05 owns final session/CSRF integration evidence. Missing configured
 tokens block unsafe requests locally. The lower-level
 `createApiClient()` remains configurable for isolated tests.
 
-The retained typed feature modules are `src/api/account.ts` for the existing
-`GET /v1/me` contract and `src/api/apiKeys.ts` for the existing organization
-key contracts recorded in Phase 00. `src/types/browser-api.ts` contains only those
-profile and key response types. The methods are not wired to screens.
-Phase 05 must establish the browser-session authorization bridge before these
-existing `/v1` contracts are used by account pages.
+The retained typed feature modules are `src/api/account.ts` for the profile
+contract, `src/api/apiKeys.ts` for organization API-key contracts, and
+`src/api/session.ts` for the `GET /api/v1/session` and
+`GET /api/v1/auth/context` browser contracts. Their response types are in
+`src/types/browser-api.ts`. The methods are not wired to screens.
+
+The session and client-context readers use the retained contract specification
+and are covered by mocked transport tests. This verifies URL encoding and
+response typing only; it does not prove those backend routes are mounted or
+that the session cookie authorizes `/v1` requests. Phase 05 service integration
+must establish that evidence before Phase 06 uses session discovery in routed
+UI.
 
 The custom credential, challenge, registration, verification, recovery,
-federation, session, logout, client-context, profile-mutation, and security
-methods have been removed. The Managed Login target and Phase 05 spec own
-backend navigation, session discovery, logout, CSRF, and Vispector handoff.
-Phase 05 directs implementation to reuse `/oauth/login` and `/oauth/callback`;
-the exact logout and browser-session schemas remain Phase 05 contract work.
-The Phase 00 contract is historical where it conflicts with the Managed Login
-specification. Local mocked transport tests do not prove service or deployed
-integration.
+federation, logout, handoff, profile-mutation, and security methods remain
+absent. The Managed Login target and Phase 05 spec keep passwords, OAuth,
+sessions, cookies, redirects, logout, CSRF enforcement, and Vispector
+authorization backend-owned. Phase 05 adds typed request consumers only for
+the retained browser session and trusted client-context response contracts;
+local mocked transport tests do not prove service or deployed integration.
+The Phase 00 contract remains authoritative only for details that do not
+conflict with Managed Login.
 
 ## Local API proxy
 
