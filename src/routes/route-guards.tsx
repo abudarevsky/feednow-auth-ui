@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { LoadingBlock } from '@/components/state-blocks'
+import { ErrorState, LoadingBlock } from '@/components/state-blocks'
 import { AuthCard } from '@/components/auth-card'
 import { useSession } from '@/routes/use-session'
 
@@ -22,6 +22,10 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
         <Link to="/login">Go to sign in</Link>
       </AuthCard>
     )
+  }
+
+  if (session.status === 'error') {
+    return <AuthCard title="Account unavailable" description="FeedNow could not check your session."><ErrorState message="Try again when the account service is available." /><button className="mt-4 underline" onClick={() => window.location.reload()}>Try again</button></AuthCard>
   }
 
   return children

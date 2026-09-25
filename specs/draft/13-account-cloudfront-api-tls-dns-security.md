@@ -10,7 +10,8 @@ Expose the account application safely at its public same-origin domain.
 ## Work boundary
 
 - Configure the account CloudFront distribution, `/*` static behavior,
-  uncached `/api/*` backend behavior, required forwarding, SPA fallback
+  uncached `/api/*` backend behavior including `/api/oauth/login` and the
+  registered `/api/oauth/callback`, required forwarding, SPA fallback
   exclusions, ACM in `us-east-1`, Route 53, HTTPS redirect, and response
   security headers.
 - Validate explicit CORS/CSRF handling with the service; do not use wildcard
@@ -19,7 +20,8 @@ Expose the account application safely at its public same-origin domain.
 ## Acceptance criteria
 
 - Direct UI routes load; API 404/errors remain API responses, not `index.html`.
-- Cookies, methods, query strings, Authorization, Origin, Referer, and CSRF
+- Cognito authorization redirects and callback query strings, cookies,
+  methods, Authorization, Origin, Referer, and CSRF
   data required by the approved backend contract survive the edge.
 - TLS/DNS/header policy and non-embeddability are proven in a non-production
   environment.

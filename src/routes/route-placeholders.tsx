@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom'
-import { routeDefinitions } from '@/routes/route-table'
+import { Link, Navigate } from 'react-router-dom'
+import { AuthCard } from '@/components/auth-card'
+import { LoadingBlock } from '@/components/state-blocks'
+import { useSession } from '@/routes/use-session'
 
 function RoutePlaceholder({ path, label }: { path: string; label: string }) {
   return (
@@ -12,19 +14,13 @@ function RoutePlaceholder({ path, label }: { path: string; label: string }) {
 }
 
 function EntryPage() {
-  return (
-    <main>
-      <h1>FeedNow account</h1>
-      <p>Choose a page to continue.</p>
-      <nav aria-label="Account pages">
-        <ul>
-          {routeDefinitions.map(({ path, label }) => (
-            <li key={path}><Link to={path}>{label}</Link></li>
-          ))}
-        </ul>
-      </nav>
-    </main>
-  )
+  const session = useSession()
+  if (session.status === 'loading') {
+    return <AuthCard title="FeedNow account" description="Checking your account session."><LoadingBlock label="Checking account session" /></AuthCard>
+  }
+  if (session.status === 'authenticated') return <Navigate to="/account" replace />
+  if (session.status === 'unauthenticated') return <Navigate to="/login" replace />
+  return <AuthCard title="Account unavailable" description="FeedNow could not check your session."><p role="alert">Try again when the account service is available.</p><button className="mt-4 underline" onClick={() => window.location.reload()}>Try again</button></AuthCard>
 }
 
 function NotFoundPage() {

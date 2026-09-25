@@ -1,29 +1,40 @@
-# Phase 08 — Registration, verification, recovery, and federation start
+# Phase 08 — Legacy auth route migration and Cognito self-service journeys
 
-**Dependency:** Phases 04, 05, and 07  
+**Dependency:** Phases 05–07
 **Handoff to:** Phase 11
 
 ## Goal
 
-Complete backend-controlled account-onboarding and credential-recovery journeys.
+Retire planned custom credential screens and verify Cognito Managed Login owns
+registration, verification, recovery, Google, and native sign-in.
 
 ## Work boundary
 
-- Implement configuration-gated signup, email verification/resend, recovery
-  request/code/new-password/completion, and federation-start UX.
-- Preserve backend anti-enumeration behavior and opaque challenge semantics.
+- Remove public navigation and frontend API types/modules for custom signup,
+  verification, password reset, challenge, and separate federation start.
+- Redirect old `/signup`, `/verify-email`, `/forgot-password`, and
+  `/reset-password` bookmarks to the backend login entry, preserving only a
+  backend-approved account/product destination. Never accept or retain
+  credentials/codes on those routes.
+- Verify Cognito Managed Login pool/client/domain branding and
+  providers enable native and Google entry, self-service signup, verification,
+  and recovery. Verify shadow registration
+  only after successful callback and no email-only identity merge.
 
 ## Acceptance criteria
 
-- Tests cover successful, expired, invalid, already-verified, unavailable, and
-  backend-failure states without revealing account existence when withheld.
-- Passwords/codes are not logged or stored; federation URL comes only from the
-  backend.
+- No app-owned password/code form or reachable custom credential API remains.
+  Legacy routes reach Managed Login safely; direct-route browser checks pass.
+- Focused checks, `npm run check`, `npm run test:e2e`, and available
+  non-production Cognito journey evidence distinguish mocks from provider
+  behavior.
 
 ## Non-goals
 
-Direct Cognito UI, MFA administration, passkeys, or account settings.
+Cognito UI cloning, frontend secrets, direct registration endpoints, Shopify,
+profile editing, or billing.
 
 ## Handoff
 
-Record test matrix and copy/accessibility evidence.
+Record removed/reused components and routes, provider configuration, browser
+results, and any unperformed live journey.

@@ -13,7 +13,9 @@ full browser-to-service path.
 - Add independently triggered UI pipeline stages: install, lint, typecheck,
   tests, build, artifact deployment, targeted cache revalidation, and smoke.
 - Define protected environment inputs, rollback, release observation, and
-  Cognito-backed non-production smoke procedures.
+  Cognito Managed Login non-production smoke procedures for native and Google
+  login, signup, verification, recovery, callback provisioning, destination
+  restore, Vispector handoff, and logout.
 
 ## Acceptance criteria
 

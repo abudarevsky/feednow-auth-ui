@@ -1,29 +1,37 @@
-# Phase 06 — Client context, session, and protected routing
+# Phase 06 — Session discovery and protected routing
 
-**Dependency:** Phases 03, 04, and 05  
+**Dependency:** Phases 03–05
 **Handoff to:** Phases 07, 09, and 10
 
 ## Goal
 
-Resolve backend-authoritative product context and central session safely at route
-entry.
+Use the backend session to guard account pages and restore protected deep links
+after Managed Login.
 
 ## Work boundary
 
-- Fetch trusted context, render product branding, discover existing sessions,
-  handle unknown/invalid client state, and enforce protected-route transitions.
-- Preserve only opaque backend-approved state; add loading and safe error UX.
+- Replace the injected placeholder session seam with backend discovery and
+  safe loading, expiry, unauthorized, network-error, and retry states.
+- Full-page redirect unauthenticated protected requests to backend login,
+  carrying the original account path and query through the backend's validated
+  `next` contract. Preserve the destination through callback and reload.
+- Keep product client context backend-authoritative; do not infer login from a
+  frontend token or establish a second session.
 
 ## Acceptance criteria
 
-- Tests prove browser product labels/return URLs are not trusted.
-- Existing-session and unauthenticated flows are deterministic and accessible.
-- Account routes never flash protected content while state is unresolved.
+- No protected content flashes before session resolution. Direct deep links,
+  repeat visits, expired sessions, and callback return restore the requested
+  destination without redirect loops or open redirects.
+- Focused route tests run first, then `npm run check` and `npm run test:e2e`
+  at 375/768/1280px with safe error and focus behavior.
 
 ## Non-goals
 
-Credential submission, registration, profile editing, or key management.
+Password/challenge forms, Vispector authorization-code issuance, account data,
+or frontend token storage.
 
 ## Handoff
 
-Record session/context state model and route test evidence.
+Record route/session state transitions, browser results, and backend mount
+assumptions.

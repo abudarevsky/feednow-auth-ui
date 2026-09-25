@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/me', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: '{"code":"unauthenticated"}' }))
+})
+
 const publicRoutes = [
   ['/login', 'Sign in'],
   ['/signup', 'Create account'],
@@ -21,19 +25,18 @@ for (const [path, heading] of publicRoutes) {
 }
 
 for (const path of accountRoutes) {
-  test(`direct protected route ${path} shows deterministic session loading`, async ({ page }) => {
+  test(`direct protected route ${path} shows the unauthenticated state`, async ({ page }) => {
     await page.goto(path)
-    await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible()
-    await expect(page.getByRole('status', { name: 'Loading account page' })).toBeVisible()
-    await expect(page.getByText('Loading account page…')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Sign in required' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Go to sign in' })).toBeVisible()
     expect(await page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')).toBe(true)
   })
 }
 
-test('protected-route loading state has a visible card and message', async ({ page }) => {
+test('protected route has a visible sign-in card', async ({ page }) => {
   await page.goto('/account')
-  await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible()
-  await expect(page.getByText('Loading account page…')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Sign in required' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Go to sign in' })).toBeVisible()
   await expect(page.locator('[data-slot="card"]')).toHaveScreenshot({
     animations: 'disabled',
     maxDiffPixelRatio: 0.01,
@@ -42,7 +45,6 @@ test('protected-route loading state has a visible card and message', async ({ pa
 
 test('entry navigation stays client-side and unknown paths render a not-found page', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
 

@@ -1,10 +1,18 @@
 # feednow-auth-ui current state
 
-Phases 01–04 are implemented and locally verified. This is a static React +
-TypeScript + Vite browser application. Phase 03 provides client-side routing,
-public and protected layouts, an injectable session-state seam, and a local
-same-origin API proxy. It does not discover a real session, implement
-authentication flows, call account APIs, or configure deployment.
+The initial Docker account milestone is in progress. This is a React +
+TypeScript + Vite browser application with local Cognito Managed Login,
+backend session discovery, an account overview, profile/organization display,
+the configured service catalog, and API-key create/list/revoke flows. The
+backend owns Cognito, identity provisioning, authorization and persistence.
+Production deployment remains out of scope.
+
+This is not yet the complete local account milestone: organization renaming,
+explicit organization name status, subscription and usage APIs, and the
+platform administration HTTP/UI surface remain unimplemented. The current
+backend also does not bind API keys to a service ID or expose a local
+protected Vispector endpoint for key-authentication proof. Do not use this
+status page as evidence that those milestone acceptance criteria passed.
 
 The completed phase requirements and handoffs live in `specs/done/`. Future,
 unaccepted work remains in `specs/` and is not current behavior.
@@ -46,7 +54,7 @@ Avatar, Tabs, Dialog, AlertDialog, Sheet, Table, Tooltip, Skeleton, and Sonner.
 | Confirm dialog | `src/components/confirm-dialog.tsx` | Uses AlertDialog for destructive confirmation. Cancel receives initial focus. Only explicit confirmation calls `onConfirm`; Escape and backdrop dismissal close without calling it, and focus returns to the trigger. |
 | State blocks | `src/components/state-blocks.tsx` | LoadingBlock shows visible loading text with `role="status"` and decorative Skeletons; EmptyState pairs an icon with visible text; ErrorState renders only its caller-supplied safe message with `role="alert"`. |
 
-## Routing and session seam
+## Routing and session discovery
 
 `src/routes/route-table.ts` defines the canonical route table from the merged
 UI specification:
@@ -57,13 +65,11 @@ UI specification:
 | Protected | `/account`, `/account/security`, `/account/api-keys` | `AccountShell` when authenticated; deterministic loading or sign-in prompt otherwise |
 | Entry / fallback | `/`, all unknown paths | Entry links / explicit not-found page |
 
-`src/routes/session-context.ts` and `session-provider.tsx` define injected
-`loading`, `unauthenticated`, or `authenticated` session state. `App` defaults
-to `loading`; a later phase must provide backend-discovered state. Public
-routes do not depend on the session. Protected routes do not fetch session
-state, interpret query parameters, or perform authentication. Account
-navigation uses React Router links and marks the current link with
-`aria-current="page"`.
+`src/App.tsx` discovers the session through backend `GET /api/v1/me`. The
+login and signup entry points redirect to the backend OAuth login route, which
+uses Cognito Managed Login. The account overview calls backend APIs through
+relative `/api/...` paths. Application session state stays in the HTTP-only
+cookie and is never copied into browser storage.
 
 ## Typed API transport and contract modules
 
@@ -129,10 +135,12 @@ npm ci
 npm run dev
 ```
 
-Vite serves the app on port 3000. Browser API calls must remain relative
-`/api/...` requests through the typed transport and feature modules. No current
-screen makes backend calls. The static production output is `dist/`, intended
-for private S3 hosting behind CloudFront in the later hosting phases.
+Vite serves the app on port 3000. Browser API calls stay relative `/api/...`
+requests. The shared local Compose file starts the UI at `http://localhost:3000`
+and backend at `http://localhost:8000`; it forwards browser API traffic from
+Vite to the backend service name inside Docker. See the backend
+[`RUNNING_WITH_COGNITO.md`](../../feednow-auth/docs/RUNNING_WITH_COGNITO.md)
+for local setup. Static hosting and production deployment remain deferred.
 
 Available commands:
 

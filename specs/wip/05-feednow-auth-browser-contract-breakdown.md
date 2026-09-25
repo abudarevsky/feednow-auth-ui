@@ -83,7 +83,7 @@ later item until the current item has its focused evidence and commit.
   effect.
 - **Non-goal:** no CloudFront changes or claim of deployed edge behavior.
 
-### 4. Mount and verify the backend-owned OAuth browser entry points
+### 4. Mount and verify the backend-owned OAuth browser entry points — pending
 
 - **Scope:** `feednow-auth`: `src/app/api/oauth.py`,
   `deploy/aws/runtime/handler.py`, OAuth route integration tests, and the
@@ -95,12 +95,20 @@ later item until the current item has its focused evidence and commit.
   before reaching those backend paths. Callback and return targets remain
   backend-validated; the browser does not construct Cognito URLs or exchange
   codes. CloudFront deployment behavior remains Phase 13.
-- **Focused verification:** focused OAuth login/callback integration tests,
-  including mounted-route, rejected-return, replay, safe-error, and redirect
-  cases; test the local `/api/oauth/*` path mapping and API-error preservation.
-- **Full handoff checks:** backend `pytest` suite and UI `npm run check`;
-  include `npm run test:e2e` if a browser route or redirect changes. Record
-  live Cognito/deployment checks separately; mocks do not satisfy them.
+- **Focused verification:** backend
+  `./.venv/bin/pytest src/tests/integration/test_oauth_login_init.py src/tests/integration/test_oauth_callback_flow.py src/tests/unit/test_runtime_handler.py -q`
+  passed (123 tests). UI `npm run test -- src/lib/dev-proxy.test.ts` passed
+  (1 test), including local `/api/oauth/*` mapping and API-error preservation.
+- **Full handoff checks:** backend `./.venv/bin/pytest -q` is not green:
+  2075 passed, 167 skipped, 3 failed. Failures are
+  `test_contract_surface_has_no_remaining_stubs`,
+  `test_minimal_stub_satisfies_isinstance`, and
+  `test_protocol_exposes_exactly_the_24_contract_methods`. The first reports
+  26 `Storage` members where Phase 11–13 specs enumerate 25; the third
+  identifies an additional `list_users` protocol member. UI `npm run check`
+  passed separately. Do not mark this step complete until the backend
+  contract/spec owner reconciles this mismatch. Deployed Cognito checks remain
+  separately pending.
 - **Rollback:** revert this commit; the service returns to its previously
   mounted route/configuration state. No data migration.
 - **Non-goal:** no Cognito client changes, CloudFront deployment, UI login

@@ -1,5 +1,10 @@
 # Phase 00 — Cross-repository contract reconciliation
 
+> Historical contract record. The Managed Login target in
+> `specs/draft/feednow-auth-ui-specification.md` supersedes its proposed
+> custom login, challenge, signup, verification, recovery, federation, and
+> password-change endpoints. None should be implemented from this file.
+
 **Status:** Browser contract baseline for Phases 04–10
 **Dependency:** none
 **Handoff to:** Phases 01, 04, and 05

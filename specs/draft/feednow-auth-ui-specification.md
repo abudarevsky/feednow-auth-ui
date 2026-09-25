@@ -1,257 +1,135 @@
-# feednow-auth-ui specification
+# feednow-auth-ui specification — Cognito Managed Login
 
-## Status and reconciliation
+## Status and authority
 
-This revision merges the original reusable-UI proposal with the account-host
-requirements supplied on 2026-09-14. Where they conflict, this document
-supersedes the original proposal:
+This target specification supersedes the authentication and account scope in the
+2026-09-14 UI proposal and its Phase 00 browser-contract reconciliation. The
+completed Phase 00–03 records remain historical evidence; their custom-auth
+routes and DTOs are migration inventory, not requirements to implement. Phase
+04 is active and must reconcile its typed modules before acceptance. Current
+behavior is documented in `docs/README.md`; no target below implies a mounted
+backend endpoint or a deployed Cognito flow.
 
-- The initial deliverable is a standalone static React application at
-  `account.feednow.io`, not an embeddable package or a direct Cognito SPA.
-- `feednow-auth` is the only authentication/account backend. The UI has no
-  Cognito SDK and does not issue, exchange, validate, or store tokens.
-- Initial account UI excludes organization and membership management. It does
-  include the already-planned organization-scoped API-key capability through
-  backend-authorized operations.
-- Browser URLs are same-origin `/api/*`. Product APIs remain versioned; the
-  backend contract phase must settle the exact canonical paths and adapters
-  before implementation. Conceptual endpoint names below are requirements, not
-  claims that they exist today.
+## Purpose and ownership
 
-## Purpose
+`account.feednow.io` is a separately deployed static account management app
+for FeedNow users, initially reached from Vispector. It owns presentation,
+accessible routing and forms for account data, loading/error states, and typed
+same-origin calls to `feednow-auth`. It is not an authentication provider.
 
-`feednow-auth-ui` is the shared browser UI for FeedNow authentication and
-account management. Its first consumer is Vispector at
-`https://vispector.feednow.io`; future consumers may include ExcelToPIM.
-The shared account application is `https://account.feednow.io`.
-
-It owns presentation, React routing, forms, client-side UX validation, loading
-and error states, account navigation, responsive behavior, accessibility, and
-typed calls to `feednow-auth`. It must remain independent of product business
-logic and must never duplicate security decisions.
-
-## Technology and deployment model
-
-Use TypeScript, React, Vite, React Router, Tailwind CSS, and shadcn/ui. Do not
-use Next.js, SSR, React Server Components, server actions, frontend-owned API
-routes, or a Node runtime in production.
-
-`npm run build` produces a static artifact. The production UI is independently
-deployed to a private S3 bucket behind its own CloudFront distribution. The
-Vispector distribution and account distribution remain separately deployable.
-
-## Responsibilities and boundaries
-
-| System | Owns |
+| System | Responsibility |
 | --- | --- |
-| `feednow-auth-ui` | UI, routing, forms, client UX validation, accessible states, typed API client |
-| `feednow-auth` | Cognito integration; registration, verification, reset and challenges; central session/cookies/logout; client registration and redirect validation; authorization-code creation/exchange; profile/account and API-key operations; CSRF, rate limits, persistence, and backend validation |
-| Vispector | its own application session and authorization, projects/workspaces, inspection data, and application UI |
+| Cognito Managed Login | Interactive Google and native email/password sign-in, self-service registration, email verification, password recovery, and configured challenges. |
+| `feednow-auth` | OAuth initiation/callback, PKCE and code exchange, provider profile verification, shadow registration, central session/cookies, logout, client/redirect validation, account and API-key authorization, persistence. |
+| `feednow-auth-ui` | Account pages and a redirect into the backend login/logout flow; no credential, code, token, or provider-secret handling. |
+| Vispector | Its own product session and authorization; registered handoff with the auth backend. |
 
-Use FeedNow internal user, organization, and key IDs from the backend. A
-browser-provided product name, logo, callback URL, return URL, or logout URL is
-untrusted input. The UI may retain an opaque state value but must not decide
-whether a redirect is allowed.
+Use React, TypeScript, Vite, React Router, Tailwind, and shadcn/ui. `npm run build` produces static assets for private S3 behind CloudFront. The account
+host proxies `/api/*` to the Python service; frontend API requests stay
+relative. SPA fallback applies only to frontend routes, never API failures.
+There is no production Node server, Cognito SDK, client secret, password
+authentication implementation, or second frontend session.
 
-## Production edge architecture
+## Authentication and navigation
 
-```text
-Route 53
-  ├─ vispector.feednow.io → CloudFront → private Vispector S3
-  └─ account.feednow.io   → CloudFront ─┬→ private auth-ui S3
-                                        └→ /api/* → API Gateway → feednow-auth
-                                                               ├→ Cognito
-                                                               └→ storage
-```
+The browser enters through a backend-owned login endpoint, targeting the
+backend's existing `GET /oauth/login` and `GET /oauth/callback` authorization-code
+flow. The public account edge must expose these as same-origin `/api/oauth/*`
+paths by removing exactly one `/api` prefix; the exact callback URI must be
+registered with Cognito. Phase 05 must verify mount and edge behavior before
+any UI flow relies on these paths. The frontend never constructs a Cognito
+URL or exchanges an authorization code.
 
-The account host presents one browser origin. CloudFront routes frontend paths
-to static S3 and `/api/*` to the Python backend. Frontend code uses relative
-URLs such as `/api/account`; it must not receive an API Gateway URL. API
-responses are never cached. SPA fallback returns `index.html` for valid
-frontend routes only, never an API 404/error response.
+A protected account route first resolves the backend session without showing
+private content. If unauthenticated, it performs a full-page navigation to the
+backend login endpoint with the requested same-origin destination. The backend
+validates and binds the return destination to single-use state. After callback,
+it provisions or resolves the user, issues the session, and redirects to the
+stored destination. Reloading a protected deep link must work. An expired or
+revoked session repeats this flow; loops and backend failures show safe,
+actionable states.
 
-Local development mirrors this shape: Vite runs on port 3000 and proxies
-`/api/*` to a local `feednow-auth` process on port 8000. No AWS credentials
-are required to develop the UI.
+Vispector initiation carries an opaque registered client request to the backend.
+Only the backend may resolve client branding, approve callback/return URLs, bind
+state, issue a one-time authorization result, and return to Vispector. A raw
+browser `next`, `client_id`, callback, or origin allowlist alone is not handoff
+authorization. The account app may show backend-supplied context and pending
+status but never invents or approves the product destination. An existing
+central session may complete the handoff without another Cognito prompt.
 
-## Authentication, client context, and session
+Logout begins with a backend endpoint that ends the central session and
+performs the configured Cognito logout redirect/termination. The frontend then
+clears privileged view state and follows only a backend-approved destination.
+The account app never infers logout from local state alone. Vispector's product
+session cleanup must be part of the registered cross-product logout contract.
 
-A typical Vispector flow is:
+There are no app-owned login, signup, verification, forgot-password,
+reset-password, or challenge forms. Legacy URLs, if retained for bookmarks,
+redirect to the backend login entry without collecting credentials. Cognito
+configuration governs Google, native sign-in, self-service signup,
+verification, recovery, and challenge availability. Google/native identities
+are never merged solely by email.
 
-```text
-Vispector no-session → account /login?client_id=vispector
-→ auth UI → feednow-auth → Cognito
-→ central FeedNow session + short-lived authorization result
-→ validated Vispector callback → Vispector application session
-```
+## Shadow registration
 
-The backend resolves trusted client context, for example through a conceptual
-`GET /api/auth/context?client_id=vispector`, including display name and logo.
-The login screen says “Sign in to continue to Vispector” only from this
-backend-resolved context. An existing valid FeedNow session should complete the
-validated client handoff without another password prompt; the UI displays a
-brief loading state while that is decided.
+After a successful Cognito callback, the backend validates token, subject, and
+profile before resolving the external identity tuple. It provisions a user and
+personal organization atomically only when that identity is new. Failed,
+unauthenticated, or partially verified flows create no user. A matching email
+without a matching provider identity is a conflict or reviewed explicit link
+flow, never an automatic merge. Race convergence uses the identity tuple.
 
-The central session belongs to `account.feednow.io`; expected cookie
-properties include `Secure`, `HttpOnly`, `SameSite=Lax`, and `Path=/`.
-JavaScript does not need access to authentication tokens. Do not store long
-lived Cognito tokens in localStorage or sessionStorage. Vispector keeps a
-separate application session.
+## Account application
 
-Cognito user pools remain the production identity provider for passwords,
-verification, reset, optional MFA, and future federation. The custom FeedNow
-UI is primary. Federation starts (Google, Microsoft, later SSO) are obtained
-from `feednow-auth`; Cognito Managed Login is not embedded as a component.
+Authenticated navigation includes profile, API keys, subscription, usage,
+account status, and administrator features when authorized. Each page uses
+backend-owned data and permissions; unsupported endpoints render an honest
+unavailable state or remain hidden until the matching contract exists.
 
-## Routes and user experiences
+- Profile shows and edits only supported fields. Identity and verification
+  changes use backend/Cognito-owned workflows; no local password form.
+- API keys list masked values, create once with transient plaintext display,
+  and revoke through backend-authorized organization scope. Roles and scopes
+  are never inferred from UI state.
+- Subscription shows current plan, entitlement, and renewal/billing status only
+  where the backend supplies authoritative values. No purchase or billing
+  mutation is implied.
+- Usage shows backend-provided statistics, period, units, and freshness.
+- Account status shows backend-provided lifecycle and safe next actions.
+- Administrator pages and actions appear only after server-provided capability
+  discovery and still require backend authorization on every request. This
+  scope is FeedNow account administration; no Shopify integration.
 
-Unauthenticated routes:
+Every backend-dependent view handles loading, empty, success, error, session
+expiry, and unauthorized states. Never render raw provider/backend errors.
+Target WCAG 2.1 AA with keyboard navigation, visible focus, semantic labels,
+contrast, dialog focus, live status, responsive 375/768/1280px layouts, and no
+color-only meaning.
 
-```text
-/login
-/signup
-/verify-email
-/forgot-password
-/reset-password
-/logout
-```
+## Browser and edge contracts
 
-Authenticated routes:
+Phase 05 reconciles actual mounted service routes against the target. Existing
+`/v1/me` and organization API-key routes are bearer-oriented; browser session
+authorization must be implemented and tested before the UI uses them. Define
+session discovery, backend logout, Vispector handoff, profile mutation, and
+subscription/usage/status/admin reads as concrete versioned schemas only after
+checking service ownership. Keep `/api/v1/*` for versioned browser JSON; map
+`/api/oauth/*` to existing backend `/oauth/*` navigation routes. Verify local
+Vite and deployed CloudFront mapping, headers, cookies, redirects, and API
+error preservation. Do not claim the old Phase 00 custom-auth endpoints exist.
 
-```text
-/account
-/account/security
-/account/api-keys
-```
+The backend owns CSRF enforcement for cookie-authenticated unsafe methods. The
+UI may reuse the typed transport, safe error mapper, cancellation, and CSRF
+adapter once the live route/cookie contract is verified. Never log or persist
+passwords, codes, token material, CSRF values, or API-key plaintext. Do not
+cache authenticated API responses. Browser query parameters are opaque input,
+not security decisions.
 
-### Login and challenges
+## Delivery and evidence
 
-Login presents FeedNow branding, backend-resolved product context, email,
-password, sign-in, forgotten-password, sign-up, and an optional backend-started
-federation action. Submission goes to the Python backend. It consumes
-structured statuses such as `authenticated`, `verification_required`,
-`challenge_required`, `invalid_credentials`, `account_disabled`, and
-`rate_limited`; it never parses Cognito error strings.
-
-The UI supports opaque backend-defined challenges including email verification,
-MFA code, and new-password-required. A challenge ID is opaque and the
-architecture must accept additional types later.
-
-### Registration, verification, and recovery
-
-Registration is offered only when backend/client configuration permits it.
-Initial UX accepts email, password, optional confirmation, and any required
-terms/privacy acknowledgement. The backend owns eligibility and provisioning.
-
-Verification supports entering and resending a code plus incorrect, expired,
-and already-verified states. Recovery supports email, code entry, a new
-password, and completion. UI copy must not reveal whether an account exists
-when the backend intentionally withholds that fact.
-
-### Account, security, and API keys
-
-The authenticated account application has Account, Security, and API keys
-navigation. Desktop uses a compact sidebar; mobile uses accessible responsive
-navigation such as a shadcn Sheet or tabs.
-
-Account displays and edits only backend-supported display name, email, and
-verification state. Security initially supports password change, email
-verification state, and current session information. MFA, passkeys, session
-management, and security history are extension points, not premature UI.
-
-API-key UI lists name, prefix/masked value, status, creation time, and
-last-used time when available. It creates a backend-authorized
-organization-scoped key, presents the plaintext once with copy guidance, and
-requires confirmation to revoke. It never requests or displays a secret again.
-Roles, ownership, valid scopes, key lifecycle, and immediate revocation stay
-server-authoritative.
-
-Logout routes through the backend, which terminates the FeedNow session and
-performs Cognito logout/revocation when needed before a registered, validated
-destination. The UI does not select arbitrary destinations.
-
-## UI system, accessibility, and state handling
-
-Use white/slate surfaces, emerald-600 primary actions with emerald-700 hover,
-emerald-50/200 accents, slate-900 primary text, slate-600/500 secondary text,
-slate-200 borders, restrained shadows, and red only for destructive/error
-actions. Avoid gradients and marketing illustrations. Auth pages use a centered
-`max-w-md` card with comfortable spacing.
-
-Prefer shadcn Button, Card, Input, Label, Form, Alert, Badge, Separator,
-DropdownMenu, Avatar, Tabs, Dialog, AlertDialog, Sheet, Table, Tooltip,
-Skeleton, and Sonner. Do not add another large component framework.
-
-Every backend-dependent view handles loading, success, empty, and error states.
-Use Skeleton where appropriate; never leave a blank session/context/account/key
-screen. Map errors to safe user language, never raw backend/AWS/Cognito output.
-
-Target WCAG 2.1 AA: keyboard navigation, visible focus, semantic labels,
-accessible form errors, contrast, correctly focused dialogs, screen-reader
-status messages, and no color-only meaning. Support desktop, tablet, and
-mobile, including non-overflowing key rows and usable dialogs/touch targets.
-
-## Frontend API boundary
-
-Create one typed transport abstraction, for example:
-
-```text
-src/api/auth.ts
-src/api/account.ts
-src/api/apiKeys.ts
-src/api/clientContext.ts
-src/lib/errors.ts
-src/lib/validation.ts
-src/types/
-```
-
-Components do not make distributed arbitrary fetch calls. The service contract
-must define structured success, validation, authentication, challenge, rate
-limit, and safe error responses; it must also define CSRF bootstrap/submission
-and the mapping between browser `/api/*` and versioned service paths. Product
-and redirect authorization remain server-side.
-
-## Edge and infrastructure controls
-
-The S3 bucket is private: Block Public Access is enabled, website hosting is
-off, and CloudFront Origin Access Control is the only public path. The
-`/api/*` behavior forwards the methods, cookies, query strings, Authorization,
-Origin, Referer, and CSRF headers required by the backend. Broad wildcard CORS
-is not appropriate for same-origin authenticated operations.
-
-CloudFront uses a response-header policy that evaluates HSTS,
-X-Content-Type-Options, Referrer-Policy, CSP, Permissions-Policy, and
-frame-ancestors. HTTPS is mandatory. Hashed Vite assets use
-`public, max-age=31536000, immutable`; `index.html` remains short-lived or
-revalidation-friendly.
-
-Use infrastructure as code for S3, OAC, CloudFront behaviors/policies, ACM
-certificate/reference, Route 53 records, and cache/origin-request policies.
-CloudFront certificates are in `us-east-1`; public URLs use FeedNow domains,
-not CloudFront hostnames. CI/CD performs install, lint, tests, build, static
-upload, targeted invalidation/revalidation when needed, and a hosted smoke test.
-A failed quality gate prevents deployment.
-
-## Security constraints
-
-Never persist or log passwords, verification codes, API-key plaintext,
-credentials in URLs, Cognito secrets, long-lived tokens, CSRF values, or raw
-exceptions. Do not trust redirect data or duplicate backend authorization.
-Cookie-based modifying requests require backend-owned CSRF protection, supported
-by the UI and preserved by CloudFront.
-
-## Initial exclusions
-
-Billing, subscriptions, organization/membership administration UI, product role
-administration, admin-user UI, audit-log UI, passkey UI, enterprise SSO setup
-UI, advanced session management, direct Cognito administration, a Node/Next.js
-backend, and Shopify login are out of scope unless a later phase adds them.
-
-## Completion evidence
-
-The implementation must include unit/component tests for login outcomes,
-client-context trust, existing sessions, account/profile states, API-key
-one-time display and revocation, recovery flows, and protected routing.
-Critical flows require browser E2E coverage. Static build success alone does
-not demonstrate visual, CloudFront, Cognito, DNS, or deployed behavior; each
-phase records the appropriate evidence and remaining unperformed checks.
+Follow `specs/done/00-delivery-map.md` as revised by this decision and the
+numbered phase files. Each build step runs its focused test, `npm run check`,
+and `npm run test:e2e` for changed flows/routes/responsive UI. Backend phases
+run their declared service tests; infrastructure phases run assertions and a
+non-production smoke. Record local, browser, edge, and deployed evidence
+separately. Static or mocked tests cannot prove Cognito or deployed behavior.
