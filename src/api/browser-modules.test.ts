@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createAccountApi } from '@/api/account'
 import { createApiClient } from '@/api/client'
 import { createApiKeysApi } from '@/api/apiKeys'
+import { createOrganizationsApi } from '@/api/organizations'
 import { createSessionApi } from '@/api/session'
 import { createCsrfApi } from '@/api/csrf'
 import { createHandoffApi } from '@/api/handoff'
@@ -13,6 +14,17 @@ function makeClient() {
 }
 
 describe('typed browser API modules', () => {
+  it('renames an organization through its typed same-origin contract', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{"id":"org_1","name":"FeedNow","name_status":"confirmed","type":"personal","created_at":"2026-09-25T00:00:00Z"}'))
+    const organizations = createOrganizationsApi(createApiClient({ fetchImpl }))
+
+    await organizations.rename('org /1', 'FeedNow')
+
+    expect(fetchImpl.mock.calls[0]?.[0]).toBe('/api/v1/organizations/org%20%2F1')
+    expect(fetchImpl.mock.calls[0]?.[1]?.method).toBe('PATCH')
+    expect(fetchImpl.mock.calls[0]?.[1]?.body).toBe('{"name":"FeedNow"}')
+  })
+
   it('uses the retained profile contract path for account reads', async () => {
     const { client, fetchImpl } = makeClient()
     const account = createAccountApi(client)

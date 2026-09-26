@@ -9,8 +9,9 @@ const publicRouteDefinitions = [
 
 const accountRouteDefinitions = [
   { path: '/account', label: 'Account' },
-  { path: '/account/security', label: 'Security' },
   { path: '/account/api-keys', label: 'API keys' },
+  { path: '/account/billing', label: 'Billing' },
+  { path: '/account/admin', label: 'Administration' },
 ] as const
 
 const routeDefinitions = [...publicRouteDefinitions, ...accountRouteDefinitions]

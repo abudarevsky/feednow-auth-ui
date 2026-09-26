@@ -13,7 +13,7 @@ const publicRoutes = [
   ['/logout', 'Sign out'],
 ] as const
 
-const accountRoutes = ['/account', '/account/security', '/account/api-keys'] as const
+const accountRoutes = ['/account', '/account/api-keys'] as const
 
 for (const [path, heading] of publicRoutes) {
   test(`direct route ${path} loads its public page`, async ({ page }) => {

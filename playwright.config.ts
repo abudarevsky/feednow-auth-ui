@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PREVIEW_PORT = 4173
-const PREVIEW_URL = `http://localhost:${PREVIEW_PORT}`
+const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}`
 
 /**
  * Browser smoke coverage for the built static artifact.
@@ -47,7 +47,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: 'npm run build && npm run preview -- --host 127.0.0.1',
     url: PREVIEW_URL,
     reuseExistingServer: false,
     timeout: 120_000,

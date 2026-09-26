@@ -51,9 +51,9 @@
     0 4px 8px -4px rgb(15 23 42 / 0.06);
 }
 
-/* FeedNow's standard sans and monospace stacks. */
+/* FeedNow brand typography and monospace stack. */
 @theme static {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+  --font-sans: "Raleway", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", monospace;
@@ -118,7 +118,7 @@
   }
 
   html {
-    /* Default font stack from the typography token */
+    /* FeedNow brand font with system fallbacks */
     font-family: var(--font-sans);
   }
 

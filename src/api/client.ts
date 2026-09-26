@@ -64,6 +64,7 @@ function createApiClient({ fetchImpl = fetch, csrf }: ApiClientOptions = {}): Ap
           headers,
           body,
           signal: options.signal,
+          cache: 'no-store',
           credentials: 'same-origin',
         })
       } catch (error) {

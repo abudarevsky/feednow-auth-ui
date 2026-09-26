@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { AccountShell } from '@/components/account-shell'
 
 describe('AccountShell navigation', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
   it('exposes the navigation landmark and active item state', () => {
     render(
       <AccountShell

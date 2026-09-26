@@ -1,18 +1,20 @@
 # feednow-auth-ui current state
 
-The initial Docker account milestone is in progress. This is a React +
-TypeScript + Vite browser application with local Cognito Managed Login,
-backend session discovery, an account overview, profile/organization display,
-the configured service catalog, and API-key create/list/revoke flows. The
-backend owns Cognito, identity provisioning, authorization and persistence.
-Production deployment remains out of scope.
+The local account milestone is in progress. This is a React + TypeScript +
+Vite browser application with local Cognito Managed Login, backend session
+discovery, an account overview, profile editing and placeholder-name onboarding,
+organization rename and explicit name status, service-bound API-key
+create/list/revoke flows, and an administrator dashboard for global counts,
+organization search, details, memberships, suspension, and confirmed deletion. The backend
+owns Cognito, identity provisioning, authorization and persistence. Production
+deployment remains out of scope.
 
-This is not yet the complete local account milestone: organization renaming,
-explicit organization name status, subscription and usage APIs, and the
-platform administration HTTP/UI surface remain unimplemented. The current
-backend also does not bind API keys to a service ID or expose a local
-protected Vispector endpoint for key-authentication proof. Do not use this
-status page as evidence that those milestone acceptance criteria passed.
+Subscription and usage APIs/UI are outside the accepted milestone scope; the
+existing empty states remain. Local Cognito login initiation and the hosted
+Managed Login page were reached, but credential entry and account provisioning
+were not completed in this handoff. Local Docker API-key authentication and
+persistence across restart were verified with a synthetic key; production
+deployment remains unverified.
 
 The completed phase requirements and handoffs live in `specs/done/`. Future,
 unaccepted work remains in `specs/` and is not current behavior.
@@ -33,7 +35,7 @@ destructive and error states. The palette uses white/slate surfaces, slate
 text and borders, restrained shadows, and no gradients. Phase 02 has one light
 palette and does not include dark mode.
 
-The document uses a system sans-serif stack and a 16px, 1.5 line-height base.
+The document uses FeedNow's Raleway font with system fallbacks and a 16px, 1.5 line-height base.
 Visible keyboard focus uses the emerald ring token. Links are underlined, and
 errors and active navigation state include text or ARIA semantics so color is
 never the only state cue.
@@ -62,14 +64,36 @@ UI specification:
 | Route group | Paths | Layout / state |
 | --- | --- | --- |
 | Public | `/login`, `/signup`, `/verify-email`, `/forgot-password`, `/reset-password`, `/logout` | `AuthCard` with safe placeholder content |
-| Protected | `/account`, `/account/security`, `/account/api-keys` | `AccountShell` when authenticated; deterministic loading or sign-in prompt otherwise |
+| Protected | `/account`, `/account/api-keys`, `/account/billing` | `AccountShell` when authenticated; deterministic loading or sign-in prompt otherwise. Billing is a placeholder available to active and suspended accounts. |
+| Administration | `/account/admin` | Account shell and admin dashboard only when backend session reports `application_role=admin` |
 | Entry / fallback | `/`, all unknown paths | Entry links / explicit not-found page |
 
 `src/App.tsx` discovers the session through backend `GET /api/v1/me`. The
 login and signup entry points redirect to the backend OAuth login route, which
-uses Cognito Managed Login. The account overview calls backend APIs through
-relative `/api/...` paths. Application session state stays in the HTTP-only
-cookie and is never copied into browser storage.
+uses Cognito Managed Login. The account page collects first and last name plus
+an organization name while a placeholder-name organization remains, storing
+the joined full name in the existing display-name field. Users can edit that
+profile name later. The account page lists all active-membership organizations
+as expandable cards with active-member counts and IDs;
+organization renames update the matching card from the persisted API
+response. The API Keys page owns key creation, masked listing, and revocation
+for each organization. Administration keeps filtered, paginated organization
+search with expandable cards. Loaded organization details expose suspend,
+reactivate, and delete actions according to organization state. Reactivation
+clears the suspension timestamp and restores organization operations; keys
+revoked at suspension stay revoked. Delete requires confirming the exact organization name. Delete
+removes the organization, every associated user account, identity, session,
+membership, and key. Suspension stores its first timestamp and revokes
+organization keys while keeping member accounts and memberships active, so
+users can sign in and see the suspended status banner. Organization and key
+operations stay blocked by the backend while suspended. The account shell
+uses FeedNow's logo and emerald styling; global application administrators
+stay active so they can administer the suspended tenant.
+The frontend requires confirmation before deletion.
+Account API reads bypass the browser HTTP cache;
+pages already open on another device show changes after reload. Application
+session state stays in the HTTP-only cookie and is never copied into browser
+storage.
 
 ## Typed API transport and contract modules
 
@@ -85,13 +109,19 @@ backend messages, field messages, raw response bodies, or exception text.
 methods. `createFeedNowApiClient()` uses the retained names `feednow_csrf` and
 `X-CSRF-Token`. Missing configured tokens block unsafe requests locally. The
 lower-level `createApiClient()` remains configurable for isolated tests.
+The application discovers the session and completes this bootstrap before it
+exposes authenticated account routes, so the first organization or key write
+has the required cookie/header pair.
 
 The retained typed feature modules are `src/api/account.ts` for the profile
-contract, `src/api/apiKeys.ts` for organization API-key contracts, and
-`src/api/session.ts` for `GET /api/v1/session`,
+contract, `src/api/organizations.ts` for organization listing and rename,
+`src/api/apiKeys.ts` for organization API-key contracts,
+`src/api/admin.ts` for administration, `src/api/me.ts` for profile updates,
+and `src/api/session.ts` for `GET /api/v1/session`,
 `GET /api/v1/auth/context`, and `POST /api/v1/logout`. The registered handoff
 request is in `src/api/handoff.ts`. Request/response types are in
-`src/types/browser-api.ts`. These methods are not wired to screens.
+`src/types/browser-api.ts`. Organization, API-key, and administration methods
+are wired to their authenticated account pages.
 
 The browser-session, client-context, CSRF, logout, and handoff methods use the
 retained contract specification and are covered by mocked transport tests.
@@ -154,14 +184,14 @@ npm run check                 # lint + typecheck + test + build
 npm run preview
 ```
 
-The Phase 03 handoff sequence `npm ci`, `npm run check`, and
-`npm run test:e2e` passed. Lint and strict TypeScript passed; 18 Vitest files
-and 93 tests passed; the production build completed. Playwright passed all 45
-Chromium tests across the configured viewports, including direct route loads,
-unknown-route handling, in-app navigation, protected-route loading, responsive
-auth-card checks, and visible keyboard focus. Three auth-card and three
-protected-loading screenshot baselines cover the current routes at the
-configured viewports.
+The current handoff `npm run check` passed: lint, strict TypeScript, 24 Vitest
+files / 142 tests, and production build. `npm run test:e2e` passed all 48
+Chromium checks across desktop, tablet, and mobile, including direct route
+loads, responsive auth-card checks, visible keyboard focus, administrator
+actions, and new-user onboarding with mocked backend responses. This is
+browser UI evidence, not live backend or Cognito proof. Three auth-card and
+three protected-loading screenshot baselines cover the existing design-system
+routes at the configured viewports.
 
 ## Responsive and accessibility evidence
 

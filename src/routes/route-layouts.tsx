@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom'
 import { AuthCard } from '@/components/auth-card'
 import { AccountShell } from '@/components/account-shell'
 import { Home } from '@/routes/home'
+import { ApiKeysPage } from '@/routes/api-keys'
 import { accountRouteDefinitions } from '@/routes/route-table'
+import { AdminDashboard } from '@/routes/admin-dashboard'
+import { BillingPage } from '@/routes/billing'
+import { useSession } from '@/routes/use-session'
 
 function PublicRouteLayout({ path, label }: { path: string; label: string }) {
   if (path === '/login' || path === '/signup') {
@@ -22,8 +26,20 @@ function PublicRouteLayout({ path, label }: { path: string; label: string }) {
   )
 }
 
-function AccountRouteLayout({ label }: { path: string; label: string }) {
-  return <AccountShell items={accountRouteDefinitions.map(({ path, label: itemLabel }) => ({ to: path, label: itemLabel }))}><Home pageTitle={label} /></AccountShell>
+function AccountRouteLayout({ path, label }: { path: string; label: string }) {
+  const session = useSession()
+  const isAdmin = session.status === 'authenticated' && session.user?.application_role === 'admin'
+  const items = accountRouteDefinitions
+    .filter((item) => item.path !== '/account/admin' || isAdmin)
+    .map(({ path: itemPath, label: itemLabel }) => ({ to: itemPath, label: itemLabel }))
+  const page = path === '/account/admin'
+    ? <AdminDashboard />
+    : path === '/account/api-keys'
+      ? <ApiKeysPage />
+      : path === '/account/billing'
+        ? <BillingPage />
+        : <Home pageTitle={label} />
+  return <AccountShell items={items}>{page}</AccountShell>
 }
 
 export { AccountRouteLayout, PublicRouteLayout }

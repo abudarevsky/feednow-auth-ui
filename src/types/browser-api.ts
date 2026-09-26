@@ -30,6 +30,7 @@ type MeResponse = UserSummary & {
   status: UserStatus
   created_at: string
   updated_at: string
+  application_role: 'user' | 'admin'
 }
 
 type ApiKeyEnvironment = 'live' | 'test'
@@ -38,6 +39,7 @@ type ApiKeyStatus = 'active' | 'revoked'
 type ApiKeySummary = {
   id: string
   name: string
+  service_id: string
   environment: ApiKeyEnvironment
   key_prefix: string
   status: ApiKeyStatus
