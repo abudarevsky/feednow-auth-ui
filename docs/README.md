@@ -1,163 +1,89 @@
 # feednow-auth-ui current state
 
-The local account milestone is in progress. This is a React + TypeScript +
-Vite browser application with local Cognito Managed Login, backend session
-discovery, an account overview, profile editing and placeholder-name onboarding,
-organization rename and explicit name status, service-bound API-key
-create/list/revoke flows, and an administrator dashboard for global counts,
-organization search, details, memberships, suspension, and confirmed deletion. The backend
-owns Cognito, identity provisioning, authorization and persistence. Production
-deployment remains out of scope.
+`feednow-auth-ui` is the static React, TypeScript, and Vite account application.
+It owns presentation, routing, forms, accessibility, and typed browser calls.
+The `feednow-auth` service owns Cognito, identity provisioning, authorization,
+sessions, CSRF validation, API-key security, and persistence. The browser uses
+same-origin `/api/*` paths and does not contain Cognito or AWS credentials.
 
-Subscription and usage APIs/UI are outside the accepted milestone scope; the
-existing empty states remain. Local Cognito login initiation and the hosted
-Managed Login page were reached, but credential entry and account provisioning
-were not completed in this handoff. Local Docker API-key authentication and
-persistence across restart were verified with a synthetic key; production
-deployment remains unverified.
+## Account flows
 
-The completed phase requirements and handoffs live in `specs/done/`. Future,
-unaccepted work remains in `specs/` and is not current behavior.
+The public routes are `/login`, `/signup`, `/verify-email`, `/forgot-password`,
+`/reset-password`, and `/logout`. Login and signup begin backend-managed
+Cognito login. The authenticated routes are `/account`, `/account/api-keys`,
+and `/account/billing`; billing is a placeholder. `/account/admin` is shown
+when the backend reports `application_role=admin`.
 
-## Design tokens
+The app discovers the current user with `GET /api/v1/me` and bootstraps the
+CSRF cookie with `GET /api/v1/csrf` before exposing authenticated account
+routes. Mutating requests send the same-origin `feednow_csrf` value in the
+`X-CSRF-Token` header. The session remains in the HTTP-only cookie. Logout
+calls `POST /api/logout` and then redirects to Cognito.
 
-`src/index.css` defines the light slate/emerald palette as literal six-digit
-hex values in Tailwind v4 `@theme` tokens. shadcn semantic variables reference
-those tokens, and `src/test/theme-contrast.test.ts` parses the same source
-tokens before checking WCAG 2.1 AA contrast for primary text, secondary text,
-error text, and primary-button text.
+First account setup lets the user choose a profile and organization name.
+Email-derived suggestions are editable; only first name is required and the
+surname is optional. Organization names are converted to slugs for availability
+checks while typing. **Complete setup** stays disabled until the name is
+available, and the backend checks uniqueness again when saving. Organization
+renames update the page from the persisted response.
 
-The primary button uses emerald-700 (`#047857`) with white text to meet AA.
-The literal emerald-600 primary from the initial palette would not meet AA for
-normal white text; emerald-600 (`#059669`) remains a non-text accent and focus
-ring. Emerald-50/200 provide subtle fills and accents. Red is reserved for
-destructive and error states. The palette uses white/slate surfaces, slate
-text and borders, restrained shadows, and no gradients. Phase 02 has one light
-palette and does not include dark mode.
+The account page lists the user's organizations. The API Keys page creates,
+lists, and revokes keys for each organization. The admin dashboard searches
+organizations and displays members and details. Platform administrators can
+suspend, reactivate, or delete other organizations after confirming the exact
+name; their own organization displays a **Your Organization** badge instead of
+the actions menu. The backend rejects attempts to suspend or delete an
+organization owned by the current administrator.
+Deletion removes related users, identities, sessions, memberships, and keys.
+Suspension blocks organization operations and revokes API keys while leaving
+memberships intact; reactivation does not restore revoked keys. These actions
+are backend-authoritative.
 
-The document uses FeedNow's Raleway font with system fallbacks and a 16px, 1.5 line-height base.
-Visible keyboard focus uses the emerald ring token. Links are underlined, and
-errors and active navigation state include text or ARIA semantics so color is
-never the only state cue.
+Subscription and usage APIs/UI are outside the current product boundary.
 
-## UI primitives
+## Browser API boundary
 
-The generated shadcn/ui component set is checked in under `src/components/ui/`:
-Button, Card, Input, Label, Form, Alert, Badge, Separator, DropdownMenu,
-Avatar, Tabs, Dialog, AlertDialog, Sheet, Table, Tooltip, Skeleton, and Sonner.
-`src/App.tsx` mounts one global Sonner `<Toaster />`.
+Typed transport and feature modules live in `src/api/`. The shared client uses
+relative URLs, same-origin credentials, cancellation, and safe error mapping.
+Components use those modules instead of constructing service URLs or exposing
+raw backend errors. The UI never stores access tokens, API-key plaintext after
+the create response, or other credentials in browser storage.
 
-| Primitive | File | Behavior |
-| --- | --- | --- |
-| Form field | `src/components/form-field.tsx` | Associates a visible label with the input; displays optional hint and error text; wires descriptions with `aria-describedby`, errors with `role="alert"` and `aria-invalid`, and required state with a visible indicator plus the native attribute. |
-| Status message | `src/components/status-message.tsx` | Provides a polite `role="status"` live region for pending and success announcements. It is screen-reader-only by default and remains mounted while its text changes. |
-| Auth card | `src/components/auth-card.tsx` | Centers a content-sized `max-w-md` Card with title, optional description, content, and footer slots. It has one h1 and no fixed height; the card fills narrow viewports. |
-| Account shell and nav | `src/components/account-shell.tsx`, `src/components/account-nav.tsx` | Shows a compact sidebar at desktop widths and a Sheet navigation panel on mobile. A semantic nav contains button items; the active item exposes `aria-current="page"`. Radix traps focus in the Sheet and restores it to the trigger when closed. |
-| Confirm dialog | `src/components/confirm-dialog.tsx` | Uses AlertDialog for destructive confirmation. Cancel receives initial focus. Only explicit confirmation calls `onConfirm`; Escape and backdrop dismissal close without calling it, and focus returns to the trigger. |
-| State blocks | `src/components/state-blocks.tsx` | LoadingBlock shows visible loading text with `role="status"` and decorative Skeletons; EmptyState pairs an icon with visible text; ErrorState renders only its caller-supplied safe message with `role="alert"`. |
+The Vite development proxy strips exactly one `/api` prefix and preserves
+backend status codes and response bodies. The AWS CloudFront API behavior
+applies the same rewrite and disables API caching. SPA routing applies only to
+the static site behavior, so an API error does not become `index.html`.
 
-## Routing and session discovery
+## AWS deployment
 
-`src/routes/route-table.ts` defines the canonical route table from the merged
-UI specification:
+`deploy/aws/account-ui.yaml` provisions the private S3 bucket, CloudFront OAC,
+static asset and SPA behaviors, same-origin API routing, and security response
+headers. `deploy/aws/deploy.sh` builds and checks the UI, deploys the
+CloudFormation stack, uploads immutable assets and an uncached `index.html`,
+then invalidates CloudFront. See [deployment.md](deployment.md)
+for account inputs, backend callback configuration, custom-domain requirements,
+and post-deployment smoke checks.
 
-| Route group | Paths | Layout / state |
-| --- | --- | --- |
-| Public | `/login`, `/signup`, `/verify-email`, `/forgot-password`, `/reset-password`, `/logout` | `AuthCard` with safe placeholder content |
-| Protected | `/account`, `/account/api-keys`, `/account/billing` | `AccountShell` when authenticated; deterministic loading or sign-in prompt otherwise. Billing is a placeholder available to active and suspended accounts. |
-| Administration | `/account/admin` | Account shell and admin dashboard only when backend session reports `application_role=admin` |
-| Entry / fallback | `/`, all unknown paths | Entry links / explicit not-found page |
+This repository defines the deployable static UI infrastructure. A deployed
+CloudFront distribution, live Cognito journey, and production account have not
+been verified from this checkout.
 
-`src/App.tsx` discovers the session through backend `GET /api/v1/me`. The
-login and signup entry points redirect to the backend OAuth login route, which
-uses Cognito Managed Login. The account page collects first and last name plus
-an organization name while a placeholder-name organization remains, storing
-the joined full name in the existing display-name field. Users can edit that
-profile name later. The account page lists all active-membership organizations
-as expandable cards with active-member counts and IDs;
-organization renames update the matching card from the persisted API
-response. The API Keys page owns key creation, masked listing, and revocation
-for each organization. Administration keeps filtered, paginated organization
-search with expandable cards. Loaded organization details expose suspend,
-reactivate, and delete actions according to organization state. Reactivation
-clears the suspension timestamp and restores organization operations; keys
-revoked at suspension stay revoked. Delete requires confirming the exact organization name. Delete
-removes the organization, every associated user account, identity, session,
-membership, and key. Suspension stores its first timestamp and revokes
-organization keys while keeping member accounts and memberships active, so
-users can sign in and see the suspended status banner. Organization and key
-operations stay blocked by the backend while suspended. The account shell
-uses FeedNow's logo and emerald styling; global application administrators
-stay active so they can administer the suspended tenant.
-The frontend requires confirmation before deletion.
-Account API reads bypass the browser HTTP cache;
-pages already open on another device show changes after reload. Application
-session state stays in the HTTP-only cookie and is never copied into browser
-storage.
+## Design and accessibility
 
-## Typed API transport and contract modules
+`src/index.css` defines the light slate and emerald palette. The primary button
+uses emerald-700 with white text; errors use red, and focus rings and status
+messages have visible or semantic cues. shadcn/ui components are in
+`src/components/ui/`. Shared form fields associate visible labels, hints, and
+errors with inputs. Destructive actions use confirmation dialogs.
 
-`src/api/client.ts` provides the shared JSON transport for relative
-`/api/*` requests. It sets same-origin credentials and JSON headers, validates
-paths before fetch, accepts caller cancellation through `AbortSignal`, and
-returns typed response bodies. `src/lib/api-errors.ts` maps HTTP status and
-recognized service error codes to fixed UI-safe messages. It does not expose
-backend messages, field messages, raw response bodies, or exception text.
-
-`src/api/csrf.ts` provides `createCsrfApi().bootstrap()` for
-`GET /api/v1/csrf` and copies a readable-cookie token into a header for unsafe
-methods. `createFeedNowApiClient()` uses the retained names `feednow_csrf` and
-`X-CSRF-Token`. Missing configured tokens block unsafe requests locally. The
-lower-level `createApiClient()` remains configurable for isolated tests.
-The application discovers the session and completes this bootstrap before it
-exposes authenticated account routes, so the first organization or key write
-has the required cookie/header pair.
-
-The retained typed feature modules are `src/api/account.ts` for the profile
-contract, `src/api/organizations.ts` for organization listing and rename,
-`src/api/apiKeys.ts` for organization API-key contracts,
-`src/api/admin.ts` for administration, `src/api/me.ts` for profile updates,
-and `src/api/session.ts` for `GET /api/v1/session`,
-`GET /api/v1/auth/context`, and `POST /api/v1/logout`. The registered handoff
-request is in `src/api/handoff.ts`. Request/response types are in
-`src/types/browser-api.ts`. Organization, API-key, and administration methods
-are wired to their authenticated account pages.
-
-The browser-session, client-context, CSRF, logout, and handoff methods use the
-retained contract specification and are covered by mocked transport tests.
-These tests verify URL encoding, response typing, empty 204 responses, and
-CSRF-header behavior only; they do not prove those backend routes are mounted
-or that the session cookie authorizes `/v1` requests. Phase 05 service
-integration must establish that evidence before Phase 06 uses session
-discovery in routed UI.
-
-The custom credential, challenge, registration, verification, recovery,
-federation, profile-mutation, and security methods remain absent. The Managed
-Login target and Phase 05 spec keep passwords, OAuth,
-sessions, cookies, redirects, logout, CSRF enforcement, and Vispector
-authorization backend-owned. Phase 05 adds typed request consumers for the
-retained session, context, CSRF bootstrap, logout, and handoff contracts;
-local mocked transport tests do not prove service or deployed integration.
-The Phase 00 contract remains authoritative only for details that do not
-conflict with Managed Login.
-
-## Local API proxy
-
-`vite.config.ts` proxies relative `/api/*` requests to
-`http://127.0.0.1:8000` by default, matching the local `feednow-auth` server.
-Set `FEEDNOW_AUTH_ORIGIN` to override that local target. The proxy strips
-exactly one leading `/api` before forwarding, preserving `/v1/*` and `/oauth/*`
-paths, query, method, body, cookies, required headers, and backend response
-status, content type, and body. It does not rewrite frontend routes; Vite
-serves the SPA shell for routes such as `/login`. `src/lib/dev-proxy.test.ts`
-verifies these behaviors against an ephemeral upstream, including
-`/api/oauth/login`, `/api/oauth/callback`, unchanged JSON 401/429 responses,
-and method/body/cookie/header forwarding. This remains local proxy evidence,
-not deployed CloudFront behavior.
+Playwright covers direct route loads, onboarding, administrator actions,
+responsive widths, and keyboard focus at desktop, tablet, and mobile sizes.
+The browser suite uses mocked API responses; it does not establish live API,
+Cognito, CloudFront, or AWS behavior.
 
 ## Local development and checks
 
-Node 22 LTS is pinned in `.nvmrc`. Use the pinned version and npm:
+Node 22 LTS is pinned in `.nvmrc`. Use npm:
 
 ```text
 nvm use
@@ -165,72 +91,20 @@ npm ci
 npm run dev
 ```
 
-Vite serves the app on port 3000. Browser API calls stay relative `/api/...`
-requests. The shared local Compose file starts the UI at `http://localhost:3000`
-and backend at `http://localhost:8000`; it forwards browser API traffic from
-Vite to the backend service name inside Docker. See the backend
-[`RUNNING_WITH_COGNITO.md`](../../feednow-auth/docs/RUNNING_WITH_COGNITO.md)
-for local setup. Static hosting and production deployment remain deferred.
-
-Available commands:
+Vite serves the app at `http://localhost:3000`. The Docker development setup
+uses `feednow-auth` at `http://localhost:8000`; browser requests remain
+relative `/api/...` paths.
 
 ```text
 npm run lint
 npm run typecheck
 npm run test                 # Vitest, non-watch
-npm run test:e2e             # Playwright against a fresh built preview
+npm run test:e2e             # Playwright against a built preview
 npm run build
-npm run check                 # lint + typecheck + test + build
-npm run preview
+npm run check                 # lint + typecheck + unit tests + build
 ```
 
-The current handoff `npm run check` passed: lint, strict TypeScript, 24 Vitest
-files / 142 tests, and production build. `npm run test:e2e` passed all 48
-Chromium checks across desktop, tablet, and mobile, including direct route
-loads, responsive auth-card checks, visible keyboard focus, administrator
-actions, and new-user onboarding with mocked backend responses. This is
-browser UI evidence, not live backend or Cognito proof. Three auth-card and
-three protected-loading screenshot baselines cover the existing design-system
-routes at the configured viewports.
-
-## Responsive and accessibility evidence
-
-`e2e/design-system.spec.ts` runs against the built static artifact on these
-Chromium projects:
-
-| Project | Viewport |
-| --- | --- |
-| `desktop-1280` | 1280 × 800 |
-| `tablet-768` | 768 × 1024 |
-| `mobile-375` | 375 × 812 |
-
-`e2e/routing.spec.ts` verifies every public route and all protected paths by
-direct navigation, the visible default protected loading state, in-app
-navigation, unknown-route behavior, and horizontal overflow at the configured
-viewports. Protected loading and unauthenticated states use `AuthCard`, so
-they remain understandable while Phase 06 session discovery is not yet wired.
-`e2e/design-system.spec.ts` checks the routed auth card, visible keyboard focus,
-and its visual baseline. Account-shell navigation and mobile Sheet focus
-containment/restoration remain covered by `src/components/account-shell.test.tsx`.
-Three committed `toHaveScreenshot` baselines cover the routed AuthCard and
-three cover the protected loading card at these viewports. The earlier gallery
-and account-shell screenshot baselines were removed when the gallery ceased to
-be an application route.
-
-Baselines were generated on macOS 26.6.2 with Playwright 1.63.0 and its pinned
-Chromium 153.0.8010.12 build (Playwright Chromium v1243). Regenerate only after
-an intentional visual change, using the same environment:
-
-```text
-npx playwright install chromium
-npm run test:e2e -- --update-snapshots
-```
-
-Then review the changed PNGs and record the OS, Playwright/Chromium versions,
-and viewport set in the commit message. Regular verification is
-`npm run test:e2e` without snapshot-update mode.
-
-No manual screen-reader session, physical tablet-device test, deployed edge
-check, backend call, or live authentication flow was performed. The proxy test
-uses an ephemeral local upstream; it does not verify a running `feednow-auth`
-service.
+Latest local evidence: `npm run check` passed with 146 unit/component tests;
+`npm run test:e2e` passed 48 Chromium checks across desktop, tablet, and
+mobile. The Vite build reports a 509.93 kB JavaScript chunk, slightly above
+the 500 kB advisory threshold. No deployed-edge or real Cognito test was run.

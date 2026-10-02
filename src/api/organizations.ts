@@ -4,12 +4,15 @@ import type { Page } from '@/types/browser-api'
 type Organization = {
   id: string
   name: string
+  slug: string
   type: string
   created_at: string
   name_status: 'placeholder' | 'confirmed'
   status: string
   suspended_at: string | null
 }
+
+type OrganizationSlugAvailability = { slug: string; available: boolean }
 
 function createOrganizationsApi(client: ApiClient) {
   return {
@@ -26,8 +29,19 @@ function createOrganizationsApi(client: ApiClient) {
         body: { name },
       })
     },
+    checkSlugAvailability(
+      organizationId: string,
+      name: string,
+      signal?: AbortSignal,
+    ): Promise<ApiResponse<OrganizationSlugAvailability>> {
+      const query = new URLSearchParams({ name })
+      return client.request(
+        `/api/v1/organizations/${encodeURIComponent(organizationId)}/slug-availability?${query.toString()}`,
+        { signal },
+      )
+    },
   }
 }
 
 export { createOrganizationsApi }
-export type { Organization }
+export type { Organization, OrganizationSlugAvailability }

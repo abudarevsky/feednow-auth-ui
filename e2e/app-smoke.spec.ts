@@ -83,6 +83,11 @@ test('new users complete their profile and organization setup', async ({ page })
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [{ id: 'org_new', name: organizationName, name_status: confirmed ? 'confirmed' : 'placeholder', status: 'active', suspended_at: null, type: 'personal', created_at: '2026-09-25T00:00:00Z' }], limit: 100, next_cursor: null }) })
   })
+  await page.route('**/api/v1/organizations/org_new/slug-availability**', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ available: true, slug: 'analytical-engines' }),
+  }))
   await page.route('**/api/v1/organizations/org_new/members*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [{ user_id: 'usr_new', role: 'owner', status: 'active', created_at: '2026-09-25T00:00:00Z' }], limit: 100, next_cursor: null }) }))
   await page.route('**/api/v1/services', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [] }) }))
 
@@ -91,6 +96,7 @@ test('new users complete their profile and organization setup', async ({ page })
   await page.getByLabel('First name').fill('Ada')
   await page.getByLabel('Last name').fill('Lovelace')
   await page.getByLabel('Organization name').fill('Analytical Engines')
+  await expect(page.getByRole('button', { name: 'Complete setup' })).toBeEnabled()
   await page.getByRole('button', { name: 'Complete setup' }).click()
   await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible()
   await expect(page.getByText('Analytical Engines (1)')).toBeVisible()
