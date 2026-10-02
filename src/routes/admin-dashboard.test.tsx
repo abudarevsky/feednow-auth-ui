@@ -11,9 +11,9 @@ describe('admin dashboard', () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input)
       if (url.endsWith('/summary')) return Response.json({ organization_count: 2, active_membership_count: 3 })
-      if (url.endsWith('/org_1')) return Response.json({ id: 'org_1', name: 'Acme Updated', name_status: 'confirmed', status: 'active', suspended_at: null, created_at: '2026-09-25T00:00:00Z', member_count: 2, members: [], services: [], api_keys: [] })
+      if (url.endsWith('/org_1')) return Response.json({ id: 'org_1', name: 'Acme Updated', name_status: 'confirmed', status: 'active', suspended_at: null, created_at: '2026-09-25T00:00:00Z', member_count: 2, members: [], is_current_user_owner: false, services: [], api_keys: [] })
       if (url.includes('/members')) return Response.json({ items: [{ user_id: 'usr_1', display_name: 'Jordan Lee', email: 'jordan@example.com', role: 'owner', account_status: 'active', registered_at: '2026-09-25T00:00:00Z', joined_at: '2026-09-25T00:00:00Z' }], limit: 20, next_cursor: null })
-      return Response.json({ items: [{ id: 'org_1', name: 'Acme', name_status: 'confirmed', status: 'active', suspended_at: null, created_at: '2026-09-25T00:00:00Z', member_count: 1, members: [{ user_id: 'usr_1', display_name: 'Jordan Lee', email: 'jordan@example.com', account_status: 'active', role: 'owner', registered_at: '2026-09-25T00:00:00Z', joined_at: '2026-09-25T00:00:00Z' }] }], limit: 20, next_cursor: null })
+      return Response.json({ items: [{ id: 'org_1', name: 'Acme', name_status: 'confirmed', status: 'active', suspended_at: null, created_at: '2026-09-25T00:00:00Z', member_count: 1, members: [{ user_id: 'usr_2', display_name: 'Jordan Lee', email: 'jordan@example.com', account_status: 'active', role: 'owner', registered_at: '2026-09-25T00:00:00Z', joined_at: '2026-09-25T00:00:00Z' }], is_current_user_owner: false }], limit: 20, next_cursor: null })
     }))
     render(<SessionProvider value={{ status: 'authenticated', user: { id: 'usr_1', display_name: 'Admin', email: 'admin@example.com', status: 'active', application_role: 'admin', created_at: '2026-09-25T00:00:00Z', updated_at: '2026-09-25T00:00:00Z' } }}><AdminDashboard /></SessionProvider>)
     await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument())
@@ -42,7 +42,7 @@ describe('admin dashboard', () => {
       }
       if (url.endsWith('/summary')) return Response.json({ organization_count: 1, active_membership_count: 0 })
       if (url.includes('/members')) return Response.json({ items: [], limit: 20, next_cursor: null })
-      const organization = { id: 'org_1', name: 'Suspended Co', name_status: 'confirmed', status: suspended ? 'disabled' : 'active', suspended_at: suspended ? '2026-09-26T10:00:00Z' : null, created_at: '2026-09-25T00:00:00Z', updated_at: '2026-09-26T10:00:00Z', member_count: 0, members: [], services: [], api_keys: [] }
+      const organization = { id: 'org_1', name: 'Suspended Co', name_status: 'confirmed', status: suspended ? 'disabled' : 'active', suspended_at: suspended ? '2026-09-26T10:00:00Z' : null, created_at: '2026-09-25T00:00:00Z', updated_at: '2026-09-26T10:00:00Z', member_count: 0, members: [], is_current_user_owner: false, services: [], api_keys: [] }
       return Response.json(url.endsWith('/org_1') ? organization : { items: [organization], limit: 20, next_cursor: null })
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -60,6 +60,20 @@ describe('admin dashboard', () => {
     await waitFor(() => expect(screen.queryByText('Suspended')).not.toBeInTheDocument())
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Actions for Suspended Co' }), { button: 0 })
     expect(await screen.findByRole('menuitem', { name: 'Suspend' })).toBeInTheDocument()
+  })
+
+  it('shows the own-organization badge instead of destructive actions', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      const organization = { id: 'org_home', name: 'My Organization', name_status: 'confirmed', status: 'active', suspended_at: null, created_at: '2026-09-25T00:00:00Z', updated_at: '2026-09-25T00:00:00Z', member_count: 1, members: [], is_current_user_owner: true, services: [], api_keys: [] }
+      if (url.endsWith('/summary')) return Response.json({ organization_count: 1, active_membership_count: 1 })
+      if (url.includes('/members')) return Response.json({ items: [], limit: 20, next_cursor: null })
+      return Response.json(url.endsWith('/org_home') ? organization : { items: [organization], limit: 20, next_cursor: null })
+    }))
+    render(<SessionProvider value={{ status: 'authenticated', user: { id: 'usr_admin', display_name: 'Admin', email: 'admin@example.com', status: 'active', application_role: 'admin', created_at: '2026-09-25T00:00:00Z', updated_at: '2026-09-25T00:00:00Z' } }}><AdminDashboard /></SessionProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: 'View full details' }))
+    expect(await screen.findByText('Your Organization')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Actions for My Organization' })).not.toBeInTheDocument()
   })
 
   it('does not call administration APIs for ordinary users', () => {

@@ -21,6 +21,7 @@ type AdminOrganization = {
   created_at: string
   member_count: number
   members: AdminMember[]
+  is_current_user_owner: boolean
 }
 type AdminOrganizationDetail = AdminOrganization & {
   type: string

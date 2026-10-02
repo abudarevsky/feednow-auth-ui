@@ -13,7 +13,7 @@ test('public auth route and protected route render from the built static artifac
   await expect(page.getByRole('link', { name: 'Go to sign in' })).toBeVisible()
 })
 
-test('administrator can open organization actions', async ({ page }) => {
+test('administrator sees the own-organization badge instead of destructive actions', async ({ page }) => {
   await page.unroute('**/api/v1/me')
   await page.route('**/api/v1/me', (route) => route.fulfill({
     status: 200,
@@ -27,6 +27,7 @@ test('administrator can open organization actions', async ({ page }) => {
     id: 'org_1', name: 'FeedNow Studio', name_status: 'confirmed', created_at: '2026-09-25T00:00:00Z',
     member_count: 1,
     members: [{ user_id: 'usr_admin', display_name: 'Admin', email: 'admin@example.test', role: 'owner', account_status: 'active', registered_at: '2026-09-25T00:00:00Z', joined_at: '2026-09-25T00:00:00Z' }],
+    is_current_user_owner: true,
   }
   await page.route('**/api/v1/admin/organizations?*', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ items: [organization], limit: 20, next_cursor: null }),
@@ -50,9 +51,8 @@ test('administrator can open organization actions', async ({ page }) => {
   await expect(page.getByText('Organization details', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Refresh details' })).toBeVisible()
   await expect(page.getByText(/Admin · admin@example\.test · owner/)).toBeVisible()
-  await page.getByRole('button', { name: 'Actions for FeedNow Studio' }).click()
-  await expect(page.getByRole('menuitem', { name: 'Suspend' })).toBeVisible()
-  await expect(page.getByRole('menuitem', { name: 'Delete organization' })).toBeVisible()
+  await expect(page.getByText('Your Organization')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Actions for FeedNow Studio' })).toHaveCount(0)
 })
 
 test('new users complete their profile and organization setup', async ({ page }) => {
